@@ -1,0 +1,1050 @@
+<!doctype html>
+<html lang="th" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock Checker</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+* { font-family: 'Sarabun', sans-serif; }
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { opacity: 1; height: 32px; }
+.fade-in { animation: fadeIn 0.25s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.loc-btn { transition: all 0.15s ease; }
+.loc-btn:active { transform: scale(0.97); }
+.toast-show { animation: toastIn 0.3s ease, toastOut 0.3s ease 2.2s forwards; }
+@keyframes toastIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+</style>
+  <style>body { box-sizing: border-box; }</style>
+ </head>
+ <body class="h-full bg-slate-50">
+  <div id="app" class="h-full w-full overflow-auto">
+   <!-- MAIN PAGE -->
+   <div id="page-main" class="fade-in">
+    <header class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-5 flex items-center justify-between shadow-md">
+     <div>
+      <h1 id="main-title" class="text-xl font-bold tracking-tight">📦 เช็คสต็อค</h1>
+      <p class="text-emerald-100 text-xs mt-0.5">เลือกสถานที่จัดเก็บเพื่อเริ่มเช็ค</p>
+     </div><button onclick="showHistory()" class="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 rounded-lg px-3 py-2 text-sm font-medium transition"> <i data-lucide="history" style="width:18px;height:18px"></i> ประวัติ </button>
+    </header>
+    <div class="p-4 grid grid-cols-2 gap-3 max-w-lg mx-auto" id="location-grid"></div>
+   </div><!-- CHECKER NAME PAGE -->
+   <div id="page-checker" class="hidden fade-in">
+    <header class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-4 flex items-center gap-3 shadow-md">
+     <button onclick="goMain()" class="p-1 rounded-lg hover:bg-white/20 transition"><i data-lucide="arrow-left" style="width:22px;height:22px"></i></button>
+     <div>
+      <h2 class="font-bold text-lg" id="checker-loc-title"></h2>
+      <p class="text-emerald-100 text-xs">กรอกชื่อผู้เช็ค</p>
+     </div>
+    </header>
+    <div class="p-6 max-w-md mx-auto">
+     <label class="block text-sm font-semibold text-slate-700 mb-2">ชื่อผู้เช็คสต็อค</label> <input id="checker-name" type="text" placeholder="กรอกชื่อ-นามสกุล" class="w-full border-2 border-slate-200 focus:border-emerald-500 rounded-xl px-4 py-3 text-lg outline-none transition"> <button onclick="startCheck()" class="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-lg transition active:scale-[0.98]">เริ่มเช็คสต็อค</button>
+    </div>
+   </div><!-- STOCK ENTRY PAGE -->
+   <div id="page-entry" class="hidden fade-in">
+    <header class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-3 flex items-center justify-between shadow-md sticky top-0 z-10">
+     <div class="flex items-center gap-3">
+      <button onclick="confirmBack()" class="p-1 rounded-lg hover:bg-white/20 transition"><i data-lucide="arrow-left" style="width:22px;height:22px"></i></button>
+      <div>
+       <h2 class="font-bold text-base" id="entry-loc-title"></h2>
+       <p class="text-emerald-100 text-xs" id="entry-checker-info"></p>
+      </div>
+     </div><button onclick="saveStock()" id="save-btn" class="bg-white text-emerald-700 font-bold px-4 py-2 rounded-lg text-sm hover:bg-emerald-50 transition active:scale-[0.97]"> 💾 บันทึก </button>
+    </header>
+    <div class="px-3 py-2 overflow-x-auto">
+     <table class="w-full text-sm" id="stock-table">
+      <thead>
+       <tr class="bg-slate-100 text-slate-600 text-xs">
+        <th class="text-left py-2 px-2 rounded-l-lg font-semibold">#</th>
+        <th class="text-left py-2 px-1 font-semibold">รายการ</th>
+        <th class="text-center py-2 px-1 font-semibold w-20">คงเหลือ</th>
+        <th class="text-center py-2 px-1 font-semibold w-14">หน่วย</th>
+        <th class="text-left py-2 px-1 font-semibold w-20">SKU</th>
+        <th class="text-left py-2 px-1 rounded-r-lg font-semibold w-20">หมายเหตุ</th>
+       </tr>
+      </thead>
+      <tbody id="stock-body"></tbody>
+     </table>
+    </div>
+   </div><!-- HISTORY PAGE -->
+   <div id="page-history" class="hidden fade-in">
+    <header class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-4 flex items-center gap-3 shadow-md">
+     <button onclick="goMain()" class="p-1 rounded-lg hover:bg-white/20 transition"><i data-lucide="arrow-left" style="width:22px;height:22px"></i></button>
+     <div>
+      <h2 class="font-bold text-lg">📋 ประวัติการเช็คสต็อค</h2>
+     </div>
+    </header>
+    <div class="p-4 max-w-lg mx-auto">
+     <label class="block text-sm font-semibold text-slate-700 mb-1">กรองตามวันที่</label> <input type="date" id="history-date" onchange="filterHistory()" class="w-full border-2 border-slate-200 focus:border-emerald-500 rounded-xl px-4 py-2.5 outline-none transition mb-4">
+     <div id="history-list"></div>
+    </div>
+   </div><!-- HISTORY DETAIL PAGE -->
+   <div id="page-detail" class="hidden fade-in">
+    <header class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-4 flex items-center justify-between shadow-md">
+     <div class="flex items-center gap-3">
+      <button onclick="showHistory()" class="p-1 rounded-lg hover:bg-white/20 transition"><i data-lucide="arrow-left" style="width:22px;height:22px"></i></button>
+      <div>
+       <h2 class="font-bold text-base" id="detail-title"></h2>
+       <p class="text-emerald-100 text-xs" id="detail-info"></p>
+      </div>
+     </div><button onclick="deleteRecord()" id="delete-btn" class="bg-red-500/80 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg transition">🗑 ลบ</button>
+    </header>
+    <div class="px-3 py-2 overflow-x-auto">
+     <table class="w-full text-sm">
+      <thead>
+       <tr class="bg-slate-100 text-slate-600 text-xs">
+        <th class="text-left py-2 px-2 rounded-l-lg font-semibold">#</th>
+        <th class="text-left py-2 px-1 font-semibold">รายการ</th>
+        <th class="text-center py-2 px-1 font-semibold w-20">คงเหลือ</th>
+        <th class="text-center py-2 px-1 font-semibold w-14">หน่วย</th>
+        <th class="text-left py-2 px-1 font-semibold w-20">SKU</th>
+        <th class="text-left py-2 px-1 rounded-r-lg font-semibold w-20">หมายเหตุ</th>
+       </tr>
+      </thead>
+      <tbody id="detail-body"></tbody>
+     </table>
+    </div>
+   </div><!-- TOAST -->
+   <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-5 py-3 rounded-xl shadow-lg text-sm font-medium hidden z-50"></div><!-- CONFIRM BACK MODAL -->
+   <div id="confirm-modal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl p-6 mx-4 max-w-sm w-full shadow-xl fade-in">
+     <p class="text-lg font-semibold text-slate-800 mb-1">ออกจากหน้านี้?</p>
+     <p class="text-slate-500 text-sm mb-5">ข้อมูลที่กรอกไว้จะหายไป</p>
+     <div class="flex gap-3">
+      <button onclick="hideModal()" class="flex-1 py-2.5 rounded-xl border-2 border-slate-200 font-semibold text-slate-600 hover:bg-slate-50 transition">อยู่ต่อ</button> <button onclick="hideModal();goMain()" class="flex-1 py-2.5 rounded-xl bg-red-500 text-white font-semibold hover:bg-red-600 transition">ออก</button>
+     </div>
+    </div>
+   </div><!-- DELETE CONFIRM MODAL -->
+   <div id="delete-modal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl p-6 mx-4 max-w-sm w-full shadow-xl fade-in">
+     <p class="text-lg font-semibold text-slate-800 mb-1">ลบรายการนี้?</p>
+     <p class="text-slate-500 text-sm mb-5">ข้อมูลจะถูกลบอย่างถาวร</p>
+     <div class="flex gap-3">
+      <button onclick="document.getElementById('delete-modal').classList.add('hidden')" class="flex-1 py-2.5 rounded-xl border-2 border-slate-200 font-semibold text-slate-600 hover:bg-slate-50 transition">ยกเลิก</button> <button onclick="confirmDelete()" id="confirm-delete-btn" class="flex-1 py-2.5 rounded-xl bg-red-500 text-white font-semibold hover:bg-red-600 transition">ลบเลย</button>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+// ============ LOCATION DATA ============
+const LOCATIONS = [
+  { id: 'freezer_rust', name: 'Freezer สนิม', icon: '🧊', color: 'from-blue-500 to-blue-600' },
+  { id: 'freezer_white', name: 'Freezer ขาว', icon: '❄️', color: 'from-sky-400 to-sky-500' },
+  { id: 'shelf_sink', name: 'ชั้นหันหน้าเข้า Sink', icon: '🗄️', color: 'from-amber-500 to-orange-500' },
+  { id: 'shelf_door', name: 'ชั้นหันหน้าเข้าประตู', icon: '🚪', color: 'from-violet-500 to-purple-500' },
+  { id: 'fridge_door', name: 'ตู้เย็นข้างประตู', icon: '🧊', color: 'from-cyan-500 to-cyan-600' },
+  { id: 'cool_kitchen_fridge', name: 'ตู้ครัวเย็น', icon: '🏠', color: 'from-teal-500 to-teal-600' },
+  { id: 'cool_kitchen_freezer', name: 'Freezer ครัวเย็น', icon: '🌡️', color: 'from-indigo-500 to-indigo-600' },
+  { id: 'hot_kitchen_freezer', name: 'Freezer ครัวร้อน', icon: '🔥', color: 'from-rose-500 to-red-500' },
+  { id: 'fridge_sink', name: 'ตู้เย็นข้าง Sink', icon: '🚰', color: 'from-emerald-500 to-green-500' },
+  { id: 'hot_station', name: 'ตู้ Station ครัวร้อน', icon: '🍳', color: 'from-orange-500 to-red-400' },
+  { id: 'stove_grill', name: 'เตาผัดและเตาย่าง', icon: '♨️', color: 'from-red-600 to-rose-600' }
+];
+
+// ============ STOCK ITEMS PER LOCATION ============
+const STOCK_ITEMS = {
+  freezer_rust: [
+    { name: 'Beef Tongue Wrapped - Mira Food', unit: 'G', sku: 'bt1223', note: '' },
+    { name: 'Beef Striploin Greenham S - Mira Food', unit: 'G', sku: 'dfdd', note: '' },
+    { name: '7mm French Fries - Sakura - Mira Food', unit: 'G', sku: 'ff123', note: '' },
+    { name: 'กุ้งขาว 21-25', unit: 'EA', sku: 'KITH0011', note: '' },
+    { name: 'ข้าวโพดเม็ด แช่แข็ง - Aro', unit: 'G', sku: 'KITH0016', note: '' },
+    { name: 'ถั่วแระญี่ปุ่น', unit: 'G', sku: 'KITH0037', note: '' },
+    { name: 'ทาโกะ วาซาบิ', unit: 'G', sku: 'KITH0038', note: '' },
+    { name: 'ปลาเกร็ดแก้ว-Nettai', unit: 'G', sku: 'KITH0058', note: '' },
+    { name: 'ปลาซาบะนอร์เวย์ 400-600', unit: 'G', sku: 'KITH0060', note: '' },
+    { name: 'ปีกปลายไก่ (รวมไก่Blackด้วย)', unit: 'G', sku: 'KITH0062', note: '' },
+    { name: 'ยำสาหร่าย', unit: 'G', sku: 'KITH0092', note: '' },
+    { name: 'สะโพกไก่ติดกระดูก', unit: 'G', sku: 'KITH0094', note: '' },
+    { name: 'ไส้อ่อนหมู(ยังไม่เสียบ)', unit: 'G', sku: 'KITH0105', note: '' },
+    { name: 'หนังไก่', unit: 'G', sku: 'KITH0108', note: '' },
+    { name: 'สันคอหมูสไลด์สด', unit: 'G', sku: 'KITH0111', note: '' },
+    { name: 'หมูสันนอก (นับหมูทั้งตัวสดด้วย)', unit: 'G', sku: 'KITH0112', note: '' },
+    { name: 'หมูสามชั้น (ยังไม่เสียบ)', unit: 'G', sku: 'KITH0113', note: '' },
+    { name: 'ปีกบนไก่', unit: 'G', sku: 'KITH0129', note: '' },
+    { name: 'Aro เอ็นข้อไก่ทอด', unit: 'G', sku: 'KITH0149', note: '' },
+    { name: 'มันเนื้อวากิว', unit: 'G', sku: 'KITH0185', note: '' },
+    { name: 'แหนมซี่โครงอ่อน', unit: 'G', sku: 'KITH0187', note: '' },
+    { name: 'AMH GnFs Brisket :Aus FZ', unit: 'G', sku: 'KITH0198', note: '' },
+    { name: 'Salmon Belly - OH Fiskeeksport Repaxx', unit: 'G', sku: 'sb123', note: '' },
+    { name: '7MM Sweet Fries - Sakura - Mira Food', unit: 'G', sku: 'swf22', note: '' },
+    { name: 'หมึกกระดอง', unit: 'G', sku: 'KITH0183', note: '' },
+  ],
+  freezer_white: [
+ { name: 'กึ๋นไก่ผ่า', unit: 'G', sku: 'KITH0010', note: '(ยังไม่เสียบ)' },
+{ name: 'เกี๊ยวซ่าไก่ Gyoza', unit: 'G', sku: 'KITH0013', note: '' },
+{ name: 'ครีบปลากระเบน', unit: 'G', sku: 'KITH0020', note: '' },
+{ name: 'ตับไก่', unit: 'KG', sku: 'KITH0033', note: '(ยังไม่เสียบ)' },
+{ name: 'ทาโกะยากิ Takoyaki 1kg', unit: 'G', sku: 'KITH0039', note: '' },
+{ name: 'เนื้อไทยวากิว เสียบไม้', unit: 'G', sku: 'KITH0050', note: '' },
+{ name: 'เอโร่ ปลาไข่แอตแลนติกแช่แข็ง 500 ก.', unit: 'G', sku: 'KITH0059', note: '(ยังไม่เสียบ)' },
+{ name: 'ไส้กรอกญี่ปุ่น SS PK Bayern Wiener', unit: 'G', sku: 'KITH0104', note: '(ยังไม่เสียบ)' },
+{ name: 'หนวดหมึกชุปแป้งทอด', unit: 'G', sku: 'KITH0106', note: '' },
+{ name: 'หอยนางรมแช่แข็ง L - Frozen Kanetsu Kaki (Hiroshima)', unit: 'G', sku: 'KITH0118', note: '' },
+{ name: 'กระดูกอ่อนไก่ - CP', unit: 'G', sku: 'KITH0124', note: '' },
+{ name: 'CP หมูสามชั้นสไลซ์อนามัย 1000ก.', unit: 'G', sku: 'KITH0197', note: '' },
+{ name: 'Beef Oyster blade Kokun เนื้อใบพายโคขุน', unit: 'G', sku: 'KITH0201', note: '' },
+{ name: 'Beef Ribeye Kokun เนื้อริบอายโคขุน', unit: 'G', sku: 'KITH0202', note: '' },
+{ name: 'Beef Shank Kokun เนื้อน่องลาย', unit: 'G', sku: 'KITH0203', note: '' },
+{ name: 'เมนูเบคอนพันหน่อไม้ฝรั่ง (Yakitori)', unit: 'PLATE', sku: 'H4-0004', note: '' },
+{ name: 'เมนูอโวคาโดพันเบคอน (Yakitori)', unit: 'PLATE', sku: 'H4-0005', note: '' },
+{ name: 'เมนูเบคอนพันเห็ดเข็มทอง (Yakitori)', unit: 'PLATE', sku: 'H4-0006', note: '' },
+{ name: 'เมนูปลาไข่ (Yakitori)', unit: 'PLATE', sku: 'H4-0008', note: '' },
+{ name: 'เมนูตับไก่ (Yakitori)', unit: 'PLATE', sku: 'H4-0011', note: '' },
+{ name: 'เมนูกึ๋นไก่ (Yakitori)', unit: 'PLATE', sku: 'H4-0012', note: '' },
+{ name: 'เมนูกระดูกอ่อนไก่ (Yakitori)', unit: 'PLATE', sku: 'H4-0013', note: '' },
+{ name: 'เมนูหนังไก่ (Yakitori)', unit: 'PLATE', sku: 'H4-0014', note: '' },
+{ name: 'เมนูสะโพกไก่ต้นหอม (Yakitori)', unit: 'PLATE', sku: 'H4-0015', note: '' },
+{ name: 'เมนูสะโพกไก่มิโซะ (Yakitori)', unit: 'PLATE', sku: 'H4-0016', note: '' },
+{ name: 'เมนูสะโพกไก่ (Yakitori)', unit: 'PLATE', sku: 'H4-0017', note: '' },
+{ name: 'เมนูไส้อ่ออนหมู (Yakitori)', unit: 'PLATE', sku: 'H4-0018', note: '' },
+{ name: 'เมนูหมูสามชั้น (Yakitori)', unit: 'PLATE', sku: 'H4-0019', note: '' },
+{ name: 'เมนูไส้กรอก (Yakitori)', unit: 'PLATE', sku: 'H4-0020', note: '' },
+{ name: 'เมนูเนื้อไทยวากิว (Yakitori)', unit: 'PLATE', sku: 'H4-0021', note: '' },
+{ name: 'แกงกะหรี่(I)', unit: 'G', sku: 'I1-0038', note: '' },
+
+  ],
+  shelf_sink: [
+    { name: 'น้ำส้มสายชู - Harukoma 20L.', unit: 'ML', sku: 'KITC0017', note: '' },
+    { name: 'แก๊สกระป๋อง - Gas', unit: 'EA', sku: 'KITG0002', note: '' },
+    { name: 'ถุงพลาสติกหิ้วใส ขนาด 8x16"', unit: 'G', sku: 'KITG0009', note: '' },
+    { name: 'ถุงพลาสติกหิ้วใส ขนาด 9x18"', unit: 'G', sku: 'KITG010', note: '' },
+    { name: 'ถุงร้อนเย็น 5x8"', unit: 'G', sku: 'KITG013', note: '' },
+    { name: 'ถุงร้อนเย็น 6x9"', unit: 'G', sku: 'KITG014', note: '' },
+    { name: 'น้ำยาล้างจาน - เซฟแพ็ค', unit: 'Ml', sku: 'KITG016', note: '' },
+    { name: 'ซอสถั่วเหลือง - Kikkoman', unit: 'Ml', sku: 'KITH0002', note: '' },
+    { name: 'ซอสทงคัตสึ - Yanamori', unit: 'ML', sku: 'KITH0027', note: '' },
+    { name: 'ซอสยากิโซบะ - Yamamori', unit: 'Ml', sku: 'KITH0030', note: '' },
+    { name: 'น้ำผึ้งแท้ 100% - ดอยคำ', unit: 'G', sku: 'KITH0044', note: '' },
+    { name: 'มิริน', unit: 'Ml', sku: 'KITH0090', note: '' },
+    { name: 'ไม้เสียบอาหารย่าง 18 ซม', unit: 'EA', sku: 'KITH0091', note: '' },
+    { name: 'เฟสท์ กล่องกระดาษ 600มลx50', unit: 'EA', sku: 'KITH0136', note: '' },
+    { name: 'สาเก wine food 18L', unit: 'Ml', sku: 'KITH0156', note: '' },
+    { name: 'ฉั่วฮะเส็ง น้ำมันพริกเผา 720 มล.', unit: 'ML', sku: 'KITH0166', note: '' },
+    { name: 'Aro น้ำจิ้มแจ่ว', unit: 'G', sku: 'KITH0180', note: '' },
+  ],
+  shelf_door: [
+    { name: 'แก๊สถัง ปตท 15กิโล - Gas', unit: 'BKT', sku: 'gas15001', note: '' },
+    { name: 'แก๊สถัง ปตท 48 กิโล - Gas', unit: 'BKT', sku: 'gas48001', note: '' },
+    { name: 'ข้าวคั่ว', unit: 'G', sku: 'KITC0003', note: '' },
+    { name: 'น้ำปลา - ทิพรส', unit: 'ML', sku: 'KITC0014', note: '' },
+    { name: 'น้ำมันงาจีน - มังกรคู่', unit: 'ML', sku: 'KITC0015', note: '' },
+    { name: 'น้ำส้ม อสร', unit: 'Ml', sku: 'KITC0016', note: '' },
+    { name: 'ผงชูรส', unit: 'G', sku: 'KITC0030', note: '' },
+    { name: 'พริกป่น', unit: 'G', sku: 'KITC0032', note: '' },
+    { name: 'น้ำตาลเหลว ตรากุหลาบแดง 1 กก.', unit: 'G', sku: 'KITC0045', note: '' },
+    { name: 'Sun zip ถุงซิปสไลด์ 26x27ซม', unit: 'BOX', sku: 'KITC0052', note: '' },
+    { name: 'ฟองน้ำล้างจาน สีเหลือง/เขียว - Scotch-Brite', unit: 'EA', sku: 'KITG0011', note: '' },
+    { name: 'Savepack ชามกลมใสพร้อมฝา พีพี 650มล.', unit: 'EA', sku: 'KITG0034', note: '' },
+    { name: 'Aro หมวกคลุมผมอนามัย สีขาว', unit: 'EA', sku: 'KITG0035', note: '' },
+    { name: 'Aro ไม้จิ้มฟันสองปลาย ถุงใส', unit: 'EA', sku: 'KITG0036', note: '' },
+    { name: 'Aro ชามพร้อมฝา 350มล.', unit: 'EA', sku: 'KITG0042', note: '' },
+    { name: 'Aro ถ้วยน้ำจิ้มฝาติด 2 ออนซ์ (PC)', unit: 'PC', sku: 'KITG0045', note: '' },
+    { name: 'Aro ถ้วยน้ำจิ้มฝาติด 4 ออนซ์ (PC)', unit: 'PC', sku: 'KITG0046', note: '' },
+    { name: 'กระเทียมเจียว - คุณชาย', unit: 'G', sku: 'KITH0004', note: '' },
+    { name: 'ซอสพริกศรีราชา เผ็ดกลาง - ศรีราชาพาณิช', unit: 'G', sku: 'KITH0009', note: '' },
+    { name: 'ซอสมะเขือเทศ - Rosa', unit: 'G', sku: 'KITH0028', note: '' },
+    { name: 'น้ำจิ้มไก่ - Aro', unit: 'G', sku: 'KITH0040', note: '' },
+    { name: 'น้ำซุปปลาแห้งเข้มข้น - ARO', unit: 'Ml', sku: 'KITH0042', note: '' },
+    { name: 'น้ำตาลทรายขาว มิตรผล', unit: 'G', sku: 'KITH0043', note: '' },
+    { name: 'น้ำมันปาล์ม - โบนัส', unit: 'Ml', sku: 'KITH0045', note: '' },
+    { name: 'น้ำมันหอย-แม่ครัว', unit: 'ML', sku: 'KITH0046', note: '' },
+    { name: 'น้ำสลัดครีมงาคั่ว - คิวพี', unit: 'Ml', sku: 'KITH0047', note: '' },
+    { name: 'น้ำสลัดซีอิ้วญี่ปุ่น - คิวพี', unit: 'Ml', sku: 'KITH0048', note: '' },
+    { name: 'ปลาโออบแห้งสไลด์ใหญ่ - MK Smoked Fish', unit: 'G', sku: 'KITH0061', note: '' },
+    { name: 'แป้งเกร็ดขนมปังเทมปุระ - Savepack', unit: 'G', sku: 'KITH0063', note: '' },
+    { name: 'แป้งมัน - Aro', unit: 'G', sku: 'KITH0066', note: '' },
+    { name: 'ผงกระเทียม -ผึ้งหลวง', unit: 'G', sku: 'KITH0067', note: '' },
+    { name: 'ผงกะหรี่ - ผึ้งหลวง', unit: 'G', sku: 'KITH0068', note: '' },
+    { name: 'ผงแกงกระหรี่ HG21 Curry Roux', unit: 'G', sku: 'KITH0069', note: '' },
+    { name: 'ผงพริกเกาหลีแบบป่นละเอียด - ชองจองวอน', unit: 'G', sku: 'KITH0070', note: '' },
+    { name: 'ผงพะโล้ - ผึ้งหลวง', unit: 'G', sku: 'KITH0071', note: '' },
+    { name: 'ผงหมาล่า', unit: 'G', sku: 'KITH0072', note: '' },
+    { name: 'พริกไทยขาวป่น - ไทยธัญญา', unit: 'G', sku: 'KITH0078', note: '' },
+    { name: 'มัสตาร์ด', unit: 'G', sku: 'KITH0088', note: '' },
+    { name: 'สาหร่ายคอมบุ - ทาเบรุ', unit: 'G', sku: 'KITH0098', note: '' },
+    { name: 'สาหร่ายแห้ง - Wakame', unit: 'G', sku: 'KITH0100', note: '' },
+    { name: 'เส้นโซบะแห้ง Soba - คาเนสุ', unit: 'G', sku: 'KITH0101', note: '' },
+    { name: 'อายิโนะโมะโต๊ะ ฮอนดาชิ ซุปผงกึ่งสำเร็จรูปผสมปลา', unit: 'G', sku: 'KITH0122', note: '' },
+    { name: 'ปลาโอแห้งแบบฝอยเล็ก', unit: 'G', sku: 'KITH0128', note: '' },
+    { name: 'ซอสปรุงรสฝาเขียว-ภูเขาทอง', unit: 'ML', sku: 'KITH0130', note: '' },
+    { name: 'ลี แอนด์ เพอร์รินส์ ซอสเปรี้ยว', unit: 'ML', sku: 'KITH0147', note: '' },
+    { name: 'พริกจินดาแห้งเด็ดก้าน 500ก.', unit: 'G', sku: 'KITH0148', note: '' },
+    { name: 'สาหร่ายผงหยาบ-ทาเบรุ', unit: 'G', sku: 'KITH0207', note: '' },
+    { name: 'ถุงมือยางทำอาหาร สีดำ L', unit: 'EA', sku: 'KITG0020', note: '' },
+    { name: 'กล่องเค้ก 2 ปอนด์', unit: 'EA', sku: 'KITH0209', note: '' },
+    { name: 'ผงปีกไก่แบล็คอินุ', unit: 'G', sku: 'I1-0032', note: '' },
+  ],
+  fridge_door: [
+    { name: 'ใบโอบะ', unit: 'EA', sku: 'F02', note: '' },
+    { name: 'ขิงดองสีชมพู', unit: 'G', sku: 'KITC0005', note: '' },
+    { name: 'ขึ้นฉ่าย', unit: 'G', sku: 'KITC0006', note: '' },
+    { name: 'ครีมชีส - Philadelphia', unit: 'G', sku: 'KITC0011', note: '' },
+    { name: 'ปูอัด', unit: 'STICK', sku: 'KITC0029', note: '' },
+    { name: 'พริกขี้หนูแดงเด็ดก้าน', unit: 'G', sku: 'KITC0031', note: '' },
+    { name: 'หัวไชเท้า', unit: 'G', sku: 'KITC0040', note: '' },
+    { name: 'รากผักชี', unit: 'G', sku: 'KITC0046', note: '' },
+    { name: 'พริกชี้ฟ้าแดง', unit: 'G', sku: 'KITC0047', note: '' },
+    { name: 'อโวคาโดนำเข้าเบอร์30', unit: 'EA', sku: 'KITC0058', note: '' },
+    { name: 'พริกขี้หนูแดงเด็ดก้านถุงใหญ่', unit: 'G', sku: 'KITC0063', note: '' },
+    { name: 'ดอกไม้รวมทานได้', unit: 'G', sku: 'KITC0069', note: '' },
+    { name: 'กระเทียมสด ปอกเปลือก', unit: 'G', sku: 'KITH0005', note: '' },
+    { name: 'กะหล่ำปลี', unit: 'G', sku: 'KITH0006', note: '' },
+    { name: 'ผักกวางตุ้ง', unit: 'G', sku: 'KITH0007', note: '' },
+    { name: 'กวางตุ้งไต้หวัน', unit: 'G', sku: 'KITH0008', note: '' },
+    { name: 'แครอท', unit: 'G', sku: 'KITH0022', note: '' },
+    { name: 'มายองเนส รสหวาน - คิวพี', unit: 'G', sku: 'KITH0029', note: '' },
+    { name: 'ต้นหอมไทย', unit: 'G', sku: 'KITH0032', note: '' },
+    { name: 'แตงกวาญี่ปุ่น', unit: 'G', sku: 'KITH0035', note: '' },
+    { name: 'ใบกุยช่ายเขียว', unit: 'G', sku: 'KITH0056', note: '' },
+    { name: 'ผักกาดขาว', unit: 'G', sku: 'KITH0073', note: '' },
+    { name: 'ผักชี', unit: 'G', sku: 'KITH0074', note: '' },
+    { name: 'ผักชีฝรั่ง', unit: 'G', sku: 'KITH0075', note: '' },
+    { name: 'ผักสลัด', unit: 'G', sku: 'KITH0077', note: '' },
+    { name: 'พาร์สลีย์', unit: 'G', sku: 'KITH0079', note: '' },
+    { name: 'มะนาวเขียว', unit: 'EA', sku: 'KITH0083', note: '' },
+    { name: 'มะนาวเหลือง (Lemon/เลมอน)', unit: 'EA', sku: 'KITH0084', note: '' },
+    { name: 'หน่อไม้ฝรั่งเขียว', unit: 'G', sku: 'KITH0107', note: '' },
+    { name: 'หอมแขกอินเดีย', unit: 'G', sku: 'KITH0114', note: '' },
+    { name: 'ต้นหอมญี่ปุ่น', unit: 'G', sku: 'KITH0115', note: '' },
+    { name: 'เห็ดหอมสดเบอร์ใหญ่', unit: 'G', sku: 'KITH0120', note: '' },
+    { name: 'เห็ดนางรมหลวงเบอร์ใหญ่', unit: 'G', sku: 'KITH0121', note: '' },
+    { name: 'ถั่วฝักยาว 500 กรัม', unit: 'G', sku: 'KITH0133', note: '' },
+    { name: 'Aro วุ้นเส้นสด 1 กก.', unit: 'G', sku: 'KITH0152', note: '' },
+    { name: 'ส.ขอนแก่น แหนมแท่งใหญ่ 200ก.', unit: 'G', sku: 'KITH0181', note: '' },
+    { name: 'ใบตอง', unit: 'G', sku: 'KITH0186', note: '' },
+    { name: 'Aro ไข่นกกระทาต้มสุก', unit: 'EA', sku: 'KITH0190', note: '' },
+    { name: 'จูเลียโน่ ซอสเห็ดทรัฟเฟิล 500ก.', unit: 'G', sku: 'KITH0194', note: '' },
+    { name: 'อโวคาโดไทย', unit: 'G', sku: 'KITH0195', note: '' },
+    { name: 'เห็ดหลินขาว', unit: 'G', sku: 'KITH0200', note: '' },
+    { name: 'เห็ดแชมปิญองน้ำตาลใหญ่', unit: 'G', sku: 'KITH0208', note: '' },
+    { name: 'กิมจิ(I)', unit: 'G', sku: 'I1-0003', note: '' },
+  ],
+  cool_kitchen_fridge: [
+    { name: 'ใบโอบะ', unit: 'EA', sku: 'F02', note: '' },
+    { name: 'กระดองปู คานิมิโซะ (8-9cm)', unit: 'EA', sku: 'KITC0002', note: '' },
+    { name: 'ข้าวคั่ว', unit: 'G', sku: 'KITC0003', note: '' },
+    { name: 'ซอสทาบาสโก - Tabasco', unit: 'ML', sku: 'KITC0004', note: '' },
+    { name: 'ขิงดองสีชมพู', unit: 'G', sku: 'KITC0005', note: '' },
+    { name: 'ไข่กุ้งดำ', unit: 'G', sku: 'KITC0007', note: '' },
+    { name: 'ไข่กุ้งส้ม', unit: 'G', sku: 'KITC0008', note: '' },
+    { name: 'ไข่ปลาแซลมอน เม็ดใหญ่', unit: 'G', sku: 'KITC0009', note: '' },
+    { name: 'ไข่หวานญี่ปุ่น', unit: 'G', sku: 'KITC0010', note: '' },
+    { name: 'งา 3 สี - Nishiki Sesame', unit: 'G', sku: 'KITC0012', note: '' },
+    { name: 'น้ำปลา - ทิพรส', unit: 'ML', sku: 'KITC0014', note: '' },
+    { name: 'น้ำมันงาจีน - มังกรคู่', unit: 'ML', sku: 'KITC0015', note: '' },
+    { name: 'น้ำส้ม อสร', unit: 'Ml', sku: 'KITC0016', note: '' },
+    { name: 'ปลาโอลาย-Katsuo', unit: 'G', sku: 'KITC0018', note: '' },
+    { name: 'ปลาโฉมงาม-Umadsura Aji', unit: 'G', sku: 'KITC0019', note: '' },
+    { name: 'ปลาช่อนทะเล-Kuro Kanpachi', unit: 'G', sku: 'KITC0020', note: '' },
+    { name: 'ปลาซาบะดองแล่', unit: 'G', sku: 'KITC0021', note: '' },
+    { name: 'ปลาแซลมอน', unit: 'G', sku: 'KITC0022', note: '' },
+    { name: 'ปลาทูน่าสด', unit: 'G', sku: 'KITC0023', note: '' },
+    { name: 'ปลาร้าญี่ปุ่น Shiokara', unit: 'G', sku: 'KITC0024', note: '' },
+    { name: 'ปลาสร้อยนกเขา-Kurodai', unit: 'G', sku: 'KITC0025', note: '' },
+    { name: 'ปลาสละ-Ike Katsuo', unit: 'G', sku: 'KITC0026', note: '' },
+    { name: 'ปลาไหลย่างซีอิ้ว 45p', unit: 'G', sku: 'KITC0027', note: '' },
+    { name: 'ปลาอินทรีย์-Sawara', unit: 'G', sku: 'KITC0028', note: '' },
+    { name: 'ผงชูรส', unit: 'G', sku: 'KITC0030', note: '' },
+    { name: 'พริกขี้หนูแดงเด็ดก้าน', unit: 'G', sku: 'KITC0031', note: '' },
+    { name: 'พริกป่น', unit: 'G', sku: 'KITC0032', note: '' },
+    { name: 'มันปู', unit: 'G', sku: 'KITC0033', note: '' },
+    { name: 'วาซาบิดอง - ซากิซากิ', unit: 'G', sku: 'KITC0034', note: '' },
+    { name: 'วาซาบิสด', unit: 'G', sku: 'KITC0035', note: '' },
+    { name: 'สาหร่ายโนริ', unit: 'SHEET', sku: 'KITC0036', note: '' },
+    { name: 'หอยเชลล์ญี่ปุ่น S', unit: 'G', sku: 'KITC0038', note: '' },
+    { name: 'หัวไชเท้า', unit: 'G', sku: 'KITC0040', note: '' },
+    { name: 'หัวปลาหมึก ทาโกะ / หนวดปลาหมึกยักษ์ (Africa)', unit: 'G', sku: 'KITC0041', note: '' },
+    { name: 'ปลาสากดำ-Ookamasu', unit: 'G', sku: 'KITC0042', note: '' },
+    { name: 'ปลามงกล้วย-Andaman Aji', unit: 'G', sku: 'KITC0043', note: '' },
+    { name: 'มิตรผล น้ำตาลทรายแดงเบเกอรี่ 1 กก.', unit: 'G', sku: 'KITC0044', note: '' },
+    { name: 'น้ำตาลเหลว ตรากุหลาบแดง 1 กก.', unit: 'G', sku: 'KITC0045', note: '' },
+    { name: 'เอโร่ หอมเจียว 400 ก.', unit: 'G', sku: 'KITC0053', note: '' },
+    { name: 'ปลากระโทง Basho Kaijiki', unit: 'G', sku: 'KITC0054', note: '' },
+    { name: 'ปลาหางแข็ง Oni Aji', unit: 'G', sku: 'KITC0055', note: '' },
+    { name: 'ปลาหมูสี Fuefuki', unit: 'G', sku: 'KITC0056', note: '' },
+    { name: 'ปลามงแซ่ Yoroi Aji', unit: 'G', sku: 'KITC0057', note: '' },
+    { name: 'ปลาเหลืองญี่ปุ่น Yume Umeiro', unit: 'G', sku: 'KITC0059', note: '' },
+    { name: 'ปลาจาระเม็ดดำ Modoki Aji', unit: 'G', sku: 'KITC0060', note: '' },
+    { name: 'ปลาสีขนเกาะ Mabuta Shima Aji', unit: 'G', sku: 'KITC0061', note: '' },
+    { name: 'ปลาครืดคราด Hedai', unit: 'G', sku: 'KITC0062', note: '' },
+    { name: 'ปลากระพงดำ Matsu Dai', unit: 'G', sku: 'KITC0064', note: '' },
+    { name: 'ปลากระมง Gingame Aji', unit: 'G', sku: 'KITC0065', note: '' },
+    { name: 'ปลากระมงครีบฟ้า Kasumi Aji', unit: 'G', sku: 'KITC0066', note: '' },
+    { name: 'ถ่านฮิดะ', unit: 'EA', sku: 'KITC0068', note: '' },
+    { name: 'ปลามงหูแพ Hishi Kaiwari', unit: 'G', sku: 'KITC0070', note: '' },
+    { name: 'ปลากระพงแดงข้างปาน Tate Fuedai', unit: 'G', sku: 'KITC0071', note: '' },
+    { name: 'แก๊สกระป๋อง - Gas', unit: 'EA', sku: 'KITG0002', note: '' },
+    { name: 'ถุงพลาสติกหิ้วใส ขนาด 8x16"', unit: 'G', sku: 'KITG0009', note: '' },
+    { name: 'ฟิล์มห่ออาหาร 14"', unit: 'M', sku: 'KITG0012', note: '' },
+    { name: 'มาจิคลีน ห้องครัว', unit: 'ML', sku: 'KITG0014', note: '' },
+    { name: 'Aro ไม้จิ้มฟันสองปลาย ถุงใส', unit: 'EA', sku: 'KITG0036', note: '' },
+    { name: 'Aro ชามพร้อมฝา 350มล.', unit: 'EA', sku: 'KITG0042', note: '' },
+    { name: 'ถุงพลาสติกหิ้วใส ขนาด 9x18"', unit: 'G', sku: 'KITG010', note: '' },
+    { name: 'น้ำยาถูพื้น - Magic Clean', unit: 'Ml', sku: 'KITG015', note: '' },
+    { name: 'ซอสพริกศรีราชา เผ็ดกลาง - ศรีราชาพาณิช', unit: 'G', sku: 'KITH0009', note: '' },
+    { name: 'เกลือไอโอดีน', unit: 'G', sku: 'KITH0012', note: '' },
+    { name: 'ข้าวญี่ปุ่น - ซาซานิชิกิ มหานคร', unit: 'G', sku: 'KITH0015', note: '' },
+    { name: 'งาขาว', unit: 'G', sku: 'KITH0023', note: '' },
+    { name: 'งาดำ', unit: 'G', sku: 'KITH0024', note: '' },
+    { name: 'มายองเนส รสหวาน - คิวพี', unit: 'G', sku: 'KITH0029', note: '' },
+    { name: 'เต้าหู้ขาว คินุ - Ohayo', unit: 'G', sku: 'KITH0034', note: '' },
+    { name: 'น้ำตาลทรายขาว มิตรผล', unit: 'G', sku: 'KITH0043', note: '' },
+    { name: 'พริกไทยขาวป่น - ไทยธัญญา', unit: 'G', sku: 'KITH0078', note: '' },
+    { name: 'มะนาวเหลือง (Lemon/เลมอน)', unit: 'EA', sku: 'KITH0084', note: '' },
+    { name: 'สาหร่ายกรอบ โนริ - ยังบัน', unit: 'EA', sku: 'KITH0097', note: '' },
+    { name: 'หอมแขกอินเดีย', unit: 'G', sku: 'KITH0114', note: '' },
+    { name: 'ข้าวหอมมะลิ - เบญจรงค์', unit: 'G', sku: 'KITH0125', note: '' },
+    { name: 'ปลาโอแห้งแบบฝอยเล็ก', unit: 'G', sku: 'KITH0128', note: '' },
+    { name: 'ฉั่วฮะเส็ง น้ำพริกเผา 900 ก.', unit: 'G', sku: 'KITH0165', note: '' },
+    { name: 'ฉั่วฮะเส็ง น้ำมันพริกเผา 720 มล.', unit: 'ML', sku: 'KITH0166', note: '' },
+    { name: 'ใบตอง', unit: 'G', sku: 'KITH0186', note: '' },
+    { name: 'แสนดี ข้าวหอมปทุม 15กก.', unit: 'G', sku: 'KITH0199', note: '' },
+    { name: 'ถุงมือยางทำอาหาร สีดำ L', unit: 'EA', sku: 'KITG0020', note: '' },
+    { name: 'เมนูแซลมอนซาชิมิ', unit: 'PLATE', sku: 'C1-0001', note: '' },
+    { name: 'เมนูทูน่าซาชิมิ', unit: 'PLATE', sku: 'C1-0002', note: '' },
+    { name: 'เมนูซาชิมิท้องปลาแซลมอน', unit: 'PLATE', sku: 'C1-0003', note: '' },
+    { name: 'เมนูปลาหมึกซาชิมิ', unit: 'PLATE', sku: 'C1-0004', note: '' },
+    { name: 'เมนูซาขิมิปลาอินทรีย์', unit: 'PLATE', sku: 'C1-0005', note: '' },
+    { name: 'เมนูซาขิมิปลาสละ', unit: 'PLATE', sku: 'C1-0006', note: '' },
+    { name: 'เมนูไข่ปลาแซลมอนซาขิมิ', unit: 'PLATE', sku: 'C1-0007', note: '' },
+    { name: 'เมนูซาขิมิปลาซาบะ', unit: 'PLATE', sku: 'C1-0008', note: '' },
+    { name: 'เมนูหอยเชลล์ซาชิมิ', unit: 'PLATE', sku: 'C1-0009', note: '' },
+    { name: 'เมนูซาชิมิปลาสร้อยนกเขา', unit: 'PLATE', sku: 'C1-0010', note: '' },
+    { name: 'เมนูซาขิมิปลาโฉมงาม', unit: 'PLATE', sku: 'C1-0011', note: '' },
+    { name: 'เมนูซาชิมิปลาโอลาย', unit: 'PLATE', sku: 'C1-0012', note: '' },
+    { name: 'เมนูซาชิมิปลาช่อนทะเล', unit: 'PLATE', sku: 'C1-0013', note: '' },
+    { name: 'เมนูซาชิมิปลาจาระเม็ดดำ', unit: 'PLATE', sku: 'C1-0014', note: '' },
+    { name: 'เมนูปูอัดซาชิมิ', unit: 'PLATE', sku: 'C1-0015', note: '' },
+    { name: 'เมนูซาขิมิปลาสากดำ', unit: 'PLATE', sku: 'C1-0016', note: '' },
+    { name: 'เมนูซาชิมิปลาเหลืองญี่ปุ่น', unit: 'PLATE', sku: 'C1-0017', note: '' },
+    { name: 'เมนูซาขิมิปลาสีขนเกาะ', unit: 'PLATE', sku: 'C1-0018', note: '' },
+    { name: 'เมนูซาชิมิปลากระโทง', unit: 'PLATE', sku: 'C1-0019', note: '' },
+    { name: 'เมนูซาชิมิปลามงแซ่', unit: 'PLATE', sku: 'C1-0020', note: '' },
+    { name: 'เมนูซาชิมิรวม', unit: 'PLATE', sku: 'C1-0021', note: '' },
+    { name: 'เมนูซาชิมิรวมอ่าวไทย', unit: 'PLATE', sku: 'C1-0022', note: '' },
+    { name: 'เมนูแซลมอนพอนสึ', unit: 'PLATE', sku: 'C1-0023', note: '' },
+    { name: 'เมนูทูน่าพอนสึ', unit: 'PLATE', sku: 'C1-0024', note: '' },
+    { name: 'เมนูยำแตงกวาญี่ปุ่น', unit: 'PLATE', sku: 'C3-0001', note: '' },
+    { name: 'เมนูไข่หวานย่าง', unit: 'PLATE', sku: 'C3-0002', note: '' },
+    { name: 'เมนูไข่หวานแบล็คอินุ', unit: 'PLATE', sku: 'C3-0003', note: '' },
+    { name: 'เมนูเต้าหู้เย็น', unit: 'PLATE', sku: 'C3-0004', note: '' },
+    { name: 'เมนูปลาร้าญี่ปุ่น', unit: 'PLATE', sku: 'C3-0005', note: '' },
+    { name: 'เมนูยำปูอัด', unit: 'PLATE', sku: 'C3-0006', note: '' },
+    { name: 'เมนูยำแซลมอน', unit: 'PLATE', sku: 'C3-0007', note: '' },
+    { name: 'เมนูยำทูน่า', unit: 'PLATE', sku: 'C3-0008', note: '' },
+    { name: 'เมนูก้อยแซลมอน', unit: 'PLATE', sku: 'C3-0009', note: '' },
+    { name: 'เมนูก้อยทูน่า', unit: 'PLATE', sku: 'C3-0010', note: '' },
+    { name: 'เมนูแซลมอนดอง', unit: 'PLATE', sku: 'C3-0011', note: '' },
+    { name: 'เมนูซูชิแซลมอน', unit: 'PLATE', sku: 'C3-0012', note: '' },
+    { name: 'เมนูซูชิทูน่า', unit: 'PLATE', sku: 'C3-0013', note: '' },
+    { name: 'เมนูซูชิแซลมอนเบิร์นมิโซะ', unit: 'PLATE', sku: 'C3-0014', note: '' },
+    { name: 'เมนูคานิมิโซะ', unit: 'PLATE', sku: 'C3-0015', note: '' },
+    { name: 'เมนูคานิมิโซะแซลมอน', unit: 'PLATE', sku: 'C3-0016', note: '' },
+    { name: 'เมนูคานิมิโซะไข่ปลาแซลมอน', unit: 'PLATE', sku: 'C3-0017', note: '' },
+    { name: 'เมนูคานิมิโซะปูอัด', unit: 'PLATE', sku: 'C3-0018', note: '' },
+    { name: 'เมนูคานิมิโซะรวม', unit: 'PLATE', sku: 'C3-0019', note: '' },
+    { name: 'เมนูคานิมิโซะหอยเชลล์', unit: 'PLATE', sku: 'C3-0020', note: '' },
+    { name: 'เมนูเพิ่มชีส', unit: 'PLATE', sku: 'C3-0021', note: '' },
+    { name: 'เมนูโรลแบล็คอินุ', unit: 'PLATE', sku: 'C4-0001', note: '' },
+    { name: 'เมนูโรลปลาไหล', unit: 'PLATE', sku: 'C4-0002', note: '' },
+    { name: 'เมนูโรลแซลมอนเบิร์น', unit: 'PLATE', sku: 'C4-0003', note: '' },
+    { name: 'เมนูโรลสไปซี่แซลมอน', unit: 'PLATE', sku: 'C4-0004', note: '' },
+    { name: 'เมนูโรลกุ้งเทมปุระ', unit: 'PLATE', sku: 'C4-0005', note: '' },
+    { name: 'เมนูดรางอนโรล', unit: 'PLATE', sku: 'C4-0006', note: '' },
+    { name: 'เมนูโรลแซลมอน', unit: 'PLATE', sku: 'C4-0007', note: '' },
+    { name: 'เมนูโรลเม็กซิกันไก่ทอด', unit: 'PLATE', sku: 'C4-0008', note: '' },
+    { name: 'เมนูโรลแคลิฟอร์เนีย', unit: 'PLATE', sku: 'C4-0009', note: '' },
+    { name: 'เมนูซูชิเลิฟเวอร์แบล็คอินุ', unit: 'PLATE', sku: 'C4-0010', note: '' },
+    { name: 'เมนูเซ็ท 3 สหาย', unit: 'PLATE', sku: 'C4-0011', note: '' },
+    { name: 'เมนูปลาไทยนิกิริ', unit: 'PLATE', sku: 'C4-0012', note: '' },
+    { name: 'เมนูทูน่าทรัฟเฟิลโรล', unit: 'PLATE', sku: 'C4-0013', note: '' },
+    { name: 'เมนูเนื้อออสเตรเลียวากิว A3 ทาทากิ', unit: 'PLATE', sku: 'C4-0014', note: '' },
+    { name: 'เมนูข้าวหน้าไข่ปลาแซลมอน', unit: 'PLATE', sku: 'C5-0001', note: '' },
+    { name: 'เมนูข้าวหน้ามันปูรวมมิตร', unit: 'PLATE', sku: 'C5-0002', note: '' },
+    { name: 'เมนูข้าวหน้าปลาดิบรวม', unit: 'PLATE', sku: 'C5-0003', note: '' },
+    { name: 'เมนูข้าวหน้าแซลมอน', unit: 'PLATE', sku: 'C5-0004', note: '' },
+    { name: 'เมนูข้าวหน้าปลาดิบสับรวม', unit: 'PLATE', sku: 'C5-0005', note: '' },
+    { name: 'เมนูปีกไก่ทอดน้ำปลา', unit: 'PLATE', sku: 'H1-0004', note: '' },
+    { name: 'ซอสเทริยากิ(ทำเอง)', unit: 'ML', sku: 'I1-0001', note: '' },
+    { name: 'น้ำจิ้มพอนสึ', unit: 'ML', sku: 'I1-0009', note: '' },
+    { name: 'น้ำยำ(ใหม่)', unit: 'G', sku: 'I1-0010', note: '' },
+    { name: 'น้ำส้มตีข้าว', unit: 'ML', sku: 'I1-0019', note: '' },
+    { name: 'ข้าวซูชิ', unit: 'G', sku: 'I1-0020', note: '' },
+    { name: 'ซอสSunomono', unit: 'ML', sku: 'I1-0024', note: '' },
+    { name: 'ซอสเต้าหู้เย็น', unit: 'G', sku: 'I1-0027', note: '' },
+    { name: 'ซอสมิโซะไซเกียว', unit: 'G', sku: 'I1-0028', note: '' },
+    { name: 'ซอสSpicy', unit: 'G', sku: 'I1-0031', note: '' },
+    { name: 'น้ำยำแตงกวา', unit: 'G', sku: 'I1-0035', note: '' },
+    { name: 'ผักยำ', unit: 'G', sku: 'I1-0037', note: '' },
+    { name: 'Oroshi Ponzu', unit: 'G', sku: 'I1-0051', note: '' },
+    { name: 'ส่วนผสม โรลแคลิฟอร์เนีย California Roll', unit: 'PC', sku: 'I1-0052', note: '' },
+  ],
+  cool_kitchen_freezer: [
+    { name: 'Mozzarella Cheese - Aro', unit: 'G', sku: 'KITC0001', note: '' },
+    { name: 'ไข่กุ้งดำ', unit: 'G', sku: 'KITC0007', note: '' },
+    { name: 'ไข่กุ้งส้ม', unit: 'G', sku: 'KITC0008', note: '' },
+    { name: 'ไข่ปลาแซลมอน เม็ดใหญ่', unit: 'G', sku: 'KITC0009', note: '' },
+    { name: 'ไข่หวานญี่ปุ่น', unit: 'G', sku: 'KITC0010', note: '' },
+    { name: 'ปลาโอลาย-Katsuo', unit: 'G', sku: 'KITC0018', note: '' },
+    { name: 'ปลาโฉมงาม-Umadsura Aji', unit: 'G', sku: 'KITC0019', note: '' },
+    { name: 'ปลาช่อนทะเล-Kuro Kanpachi', unit: 'G', sku: 'KITC0020', note: '' },
+    { name: 'ปลาซาบะดองแล่', unit: 'G', sku: 'KITC0021', note: '' },
+    { name: 'ปลาทูน่าสด', unit: 'G', sku: 'KITC0023', note: '' },
+    { name: 'ปลาร้าญี่ปุ่น Shiokara', unit: 'G', sku: 'KITC0024', note: '' },
+    { name: 'ปลาสร้อยนกเขา-Kurodai', unit: 'G', sku: 'KITC0025', note: '' },
+    { name: 'ปลาสละ-Ike Katsuo', unit: 'G', sku: 'KITC0026', note: '' },
+    { name: 'ปลาไหลย่างซีอิ้ว 45p', unit: 'G', sku: 'KITC0027', note: '' },
+    { name: 'ปลาอินทรีย์-Sawara', unit: 'G', sku: 'KITC0028', note: '' },
+    { name: 'ปูอัด', unit: 'STICK', sku: 'KITC0029', note: '' },
+    { name: 'มันปู', unit: 'G', sku: 'KITC0033', note: '' },
+    { name: 'วาซาบิดอง - ซากิซากิ', unit: 'G', sku: 'KITC0034', note: '' },
+    { name: 'วาซาบิสด', unit: 'G', sku: 'KITC0035', note: '' },
+    { name: 'หอยเชลล์ญี่ปุ่น S', unit: 'G', sku: 'KITC0038', note: '' },
+    { name: 'หัวปลาหมึก ทาโกะ / หนวดปลาหมึกยักษ์ (Africa)', unit: 'G', sku: 'KITC0041', note: '' },
+    { name: 'ปลาสากดำ-Ookamasu', unit: 'G', sku: 'KITC0042', note: '' },
+    { name: 'ปลามงกล้วย-Andaman Aji', unit: 'G', sku: 'KITC0043', note: '' },
+    { name: 'ปลากระโทง Basho Kaijiki', unit: 'G', sku: 'KITC0054', note: '' },
+    { name: 'ปลาหางแข็ง Oni Aji', unit: 'G', sku: 'KITC0055', note: '' },
+    { name: 'ปลาหมูสี Fuefuki', unit: 'G', sku: 'KITC0056', note: '' },
+    { name: 'ปลามงแซ่ Yoroi Aji', unit: 'G', sku: 'KITC0057', note: '' },
+    { name: 'ปลาเหลืองญี่ปุ่น Yume Umeiro', unit: 'G', sku: 'KITC0059', note: '' },
+    { name: 'ปลาจาระเม็ดดำ Modoki Aji', unit: 'G', sku: 'KITC0060', note: '' },
+    { name: 'ปลาสีขนเกาะ Mabuta Shima Aji', unit: 'G', sku: 'KITC0061', note: '' },
+    { name: 'ปลาครืดคราด Hedai', unit: 'G', sku: 'KITC0062', note: '' },
+    { name: 'ปลากระพงดำ Matsu Dai', unit: 'G', sku: 'KITC0064', note: '' },
+    { name: 'ปลากระมง Gingame Aji', unit: 'G', sku: 'KITC0065', note: '' },
+    { name: 'ปลากระมงครีบฟ้า Kasumi Aji', unit: 'G', sku: 'KITC0066', note: '' },
+    { name: 'ปลามงหูแพ Hishi Kaiwari', unit: 'G', sku: 'KITC0070', note: '' },
+    { name: 'ปลากระพงแดงข้างปาน Tate Fuedai', unit: 'G', sku: 'KITC0071', note: '' },
+  ],
+  hot_kitchen_freezer: [
+    { name: 'เฟรนช์ฟรายส์ 7mm French Fries - Sakura - Mira Food', unit: 'G', sku: 'ff123', note: '' },
+    { name: 'ปลาแซลมอน', unit: 'G', sku: 'KITC0022', note: '' },
+    { name: 'Aro ป้ายสติกเกอร์', unit: 'EA', sku: 'KITG0041', note: '' },
+    { name: 'เกี๊ยวซ่าไก่ Gyoza', unit: 'G', sku: 'KITH0013', note: '' },
+    { name: 'ข้าวโพดเม็ด แช่แข็ง - Aro', unit: 'G', sku: 'KITH0016', note: '' },
+    { name: 'ถั่วแระญี่ปุ่น', unit: 'G', sku: 'KITH0037', note: '' },
+    { name: 'ทาโกะยากิ Takoyaki 1kg', unit: 'G', sku: 'KITH0039', note: '' },
+    { name: 'เนยจืด - Allowrie', unit: 'G', sku: 'KITH0049', note: '' },
+    { name: 'ปลาเกร็ดแก้ว-Nettai', unit: 'G', sku: 'KITH0058', note: '' },
+    { name: 'ปลาซาบะนอร์เวย์ 400-600', unit: 'G', sku: 'KITH0060', note: '' },
+    { name: 'ปีกปลายไก่(รวมไก่Blackด้วย)', unit: 'G', sku: 'KITH0062', note: '' },
+    { name: 'มันหวานญี่ปุ่นสีเหลือง', unit: 'G', sku: 'KITH0086', note: '' },
+    { name: 'มันหวานญี่ปุ่น เบนิฮารุกะ', unit: 'G', sku: 'KITH0087', note: '' },
+    { name: 'หนวดหมึกชุปแป้งทอด', unit: 'G', sku: 'KITH0106', note: '' },
+    { name: 'หมูสันนอก(นับหมูทงคัตสึด้วย)', unit: 'G', sku: 'KITH0112', note: '' },
+    { name: 'Aro เอ็นข้อไก่ทอด', unit: 'G', sku: 'KITH0149', note: '' },
+    { name: 'Aro ข้าวโพดหวานหั่นท่อนแช่แข็ง', unit: 'G', sku: 'KITH0204', note: '' },
+    { name: 'มันหวาน สวัทฟรายส์ 7MM Sweet Fries - Sakura - Mira Food', unit: 'G', sku: 'swf22', note: '' },
+    { name: 'ปีกไก่หมัก(ปีกน้ำปลา)', unit: 'PC', sku: 'I1-0014', note: '' },
+    { name: 'ส่วนผสม ปลาม้วนใบโอบะห่อสาหร่าย (แบล็คอินุฟรายส์ ใหม่)', unit: 'PC', sku: 'I1-0050', note: '' },
+  ],
+  fridge_sink: [
+    { name: 'ลิ้นวัวลอกหนัง Beef Tongue Wrapped - Mira Food', unit: 'G', sku: 'bt1223', note: '' },
+    { name: 'เนื้อสันนอกวัว Beef Striploin Greenham S - Mira Food', unit: 'G', sku: 'dfdd', note: '' },
+    { name: 'ถุงขยะดำ แบบหนา ขนาด 30x40" - Hero', unit: 'EA', sku: 'KITG0007', note: '' },
+    { name: 'ถุงขยะดำ แบบหนา ขนาด 36x45" - Hero', unit: 'EA', sku: 'KITG008', note: '' },
+    { name: 'กุ้งยืด 21-25', unit: 'EA', sku: 'KITH0011', note: '' },
+    { name: 'ข้าวโพดหวาน', unit: 'G', sku: 'KITH0017', note: '' },
+    { name: 'ไข่ไก่ เบอร์ 2 มีฝา 30 ฟอง', unit: 'EA', sku: 'KITH0019', note: '' },
+    { name: 'ซอสมะเขือเทศ - Rosa', unit: 'G', sku: 'KITH0028', note: '' },
+    { name: 'เต้าหู้ขาว คินุ - Ohayo', unit: 'G', sku: 'KITH0034', note: '' },
+    { name: 'ถั่วแระญี่ปุ่น', unit: 'G', sku: 'KITH0037', note: '' },
+    { name: 'ทาโกะ วาซาบิ', unit: 'G', sku: 'KITH0038', note: '' },
+    { name: 'น้ำสลัดครีมงาคั่ว - คิวพี', unit: 'Ml', sku: 'KITH0047', note: '' },
+    { name: 'น้ำสลัดซีอิ้วญี่ปุ่น - คิวพี', unit: 'Ml', sku: 'KITH0048', note: '' },
+    { name: 'เนยจืด - Allowrie', unit: 'G', sku: 'KITH0049', note: '' },
+    { name: 'มะเขือเทศราชินี', unit: 'G', sku: 'KITH0081', note: '' },
+    { name: 'มะเขือม่วงก้านเขียว โครงการหลวง', unit: 'G', sku: 'KITH0082', note: '' },
+    { name: 'มะนาวเขียว', unit: 'EA', sku: 'KITH0083', note: '' },
+    { name: 'มิโซะซุปเต้าเจี้ยว - ตราเด็กอิคคิวซัง', unit: 'G', sku: 'KITH0089', note: '' },
+    { name: 'ยำสาหร่าย', unit: 'G', sku: 'KITH0092', note: '' },
+    { name: 'สะโพกไก่ติดกระดูก', unit: 'G', sku: 'KITH0094', note: '' },
+    { name: 'สาลี่น้ำผึ้ง', unit: 'G', sku: 'KITH0096', note: '' },
+    { name: 'เส้นโซบะแห้ง Soba - คาเนสุ', unit: 'G', sku: 'KITH0101', note: '' },
+    { name: 'หอมใหญ่', unit: 'G', sku: 'KITH0116', note: '' },
+    { name: 'เห็ดเข็มทอง', unit: 'G', sku: 'KITH0119', note: '' },
+    { name: 'ปีกบนไก่', unit: 'G', sku: 'KITH0129', note: '' },
+    { name: 'ข้าวโพดหวาน แพ็ค 500ก.', unit: 'G', sku: 'KITH0138', note: '' },
+    { name: 'ฟักทองลูกใหญ่ผ่าซีก', unit: 'G', sku: 'KITH0172', note: '' },
+    { name: 'ส.ขอนแก่น แหนมแท่งใหญ่ 200ก.', unit: 'G', sku: 'KITH0181', note: '' },
+    { name: 'มันเนื้อวากิว', unit: 'G', sku: 'KITH0185', note: '' },
+    { name: 'แหนมซี่โครงอ่อน', unit: 'G', sku: 'KITH0187', note: '' },
+    { name: 'อโวคาโดไทย', unit: 'G', sku: 'KITH0195', note: '' },
+    { name: 'ฝอยสแตนเลส', unit: 'EA', sku: 'KTIG0014', note: '' },
+    { name: 'ท้องปลาแซลมอน Salmon Belly - OH Fiskeeksport Repaxk No. 4 - Mira Food', unit: 'G', sku: 'sb123', note: '' },
+    { name: 'หมึกกระดอง', unit: 'G', sku: 'KITH0183', note: '' },
+    { name: 'ขิงฝน', unit: 'G', sku: 'I1-0007', note: '' },
+    { name: 'ซอสมิโซะหมัก', unit: 'G', sku: 'I1-0018', note: '' },
+    { name: 'ซอสถั่วแระ', unit: 'G', sku: 'I1-0026', note: '' },
+    { name: 'ซอสยูเกะ Yuke', unit: 'ML', sku: 'I1-0029', note: '' },
+    { name: 'แกงกะหรี่(I)', unit: 'G', sku: 'I1-0038', note: '' },
+  ],
+  hot_station: [
+    { name: 'เกลือทะเล', unit: 'KG', sku: 'F01', note: '' },
+    { name: 'แป้งคาราเกะ 1 KG', unit: 'G', sku: 'F03', note: '' },
+    { name: 'วาซาบิดอง - ซากิซากิ', unit: 'G', sku: 'KITC0034', note: '' },
+    { name: 'ถุงร้อนเย็น 5x8"', unit: 'G', sku: 'KITG013', note: '' },
+    { name: 'ถุงร้อนเย็น 6x9"', unit: 'G', sku: 'KITG014', note: '' },
+    { name: 'กะหล่ำปลี', unit: 'G', sku: 'KITH0006', note: '' },
+    { name: 'กึ๋นไก่ผ่า(ที่ยังไม่เสียบไม้)', unit: 'G', sku: 'KITH0010', note: '' },
+    { name: 'ไข่ไก่ เบอร์ 2 มีฝา 30 ฟอง', unit: 'EA', sku: 'KITH0019', note: '' },
+    { name: 'ครีบปลากระเบน', unit: 'G', sku: 'KITH0020', note: '' },
+    { name: 'งาขาว', unit: 'G', sku: 'KITH0023', note: '' },
+    { name: 'ซอสทงคัตสึ - Yanamori', unit: 'ML', sku: 'KITH0027', note: '' },
+    { name: 'ทาโกะ วาซาบิ', unit: 'G', sku: 'KITH0038', note: '' },
+    { name: 'น้ำซุปปลาแห้งเข้มข้น - ARO', unit: 'Ml', sku: 'KITH0042', note: '' },
+    { name: 'เนื้อไทยวากิว เสียบไม้', unit: 'G', sku: 'KITH0050', note: '' },
+    { name: 'แป้งเกร็ดขนมปังเทมปุระ - Savepack', unit: 'G', sku: 'KITH0063', note: '' },
+    { name: 'แป้งเทมปุระ', unit: 'G', sku: 'KITH0065', note: '' },
+    { name: 'ผงหมาล่า', unit: 'G', sku: 'KITH0072', note: '' },
+    { name: 'ผักชี', unit: 'G', sku: 'KITH0074', note: '' },
+    { name: 'ผักสลัด', unit: 'G', sku: 'KITH0077', note: '' },
+    { name: 'ไม้เสียบอาหารย่าง 18 ซม', unit: 'EA', sku: 'KITH0091', note: '' },
+    { name: 'ยำสาหร่าย', unit: 'G', sku: 'KITH0092', note: '' },
+    { name: 'สาลี่น้ำผึ้ง', unit: 'G', sku: 'KITH0096', note: '' },
+    { name: 'สาหร่ายเส้น - ทาเบรุ', unit: 'G', sku: 'KITH0099', note: '' },
+    { name: 'สาหร่ายแห้ง - Wakame', unit: 'G', sku: 'KITH0100', note: '' },
+    { name: 'เส้นบุกขาวแผ่นโมคิ', unit: 'G', sku: 'KITH0102', note: '' },
+    { name: 'หนังยาง', unit: 'G', sku: 'KITH0109', note: '' },
+    { name: 'หมูบด', unit: 'G', sku: 'KITH0110', note: '' },
+    { name: 'สันคอหมูสไลซ์สด', unit: 'G', sku: 'KITH0111', note: '' },
+    { name: 'ปลาโอแห้งแบบฝอยเล็ก', unit: 'G', sku: 'KITH0128', note: '' },
+    { name: 'โนซึ ผักดองรวมมิตร 1กก.', unit: 'G', sku: 'KITH0145', note: '' },
+    { name: 'โกชูจัง 1 กก.', unit: 'G', sku: 'KITH0173', note: '' },
+    { name: 'Aro น้ำจิ้มแจ่ว', unit: 'G', sku: 'KITH0180', note: '' },
+    { name: 'Aro กระเทียมเจียวชนิดแผ่น', unit: 'G', sku: 'KITH0182', note: '' },
+    { name: 'ใบตอง', unit: 'G', sku: 'KITH0186', note: '' },
+    { name: 'Aro ไข่นกกระทาต้มสุก', unit: 'EA', sku: 'KITH0190', note: '' },
+    { name: 'AMH GnFs Brisket :Aus FZ เสือร้องไห้ AMH', unit: 'G', sku: 'KITH0198', note: '' },
+    { name: 'สาหร่ายผงหยาบ-ทาเบรุ', unit: 'G', sku: 'KITH0207', note: '' },
+    { name: 'เมนูเฟรนฟรายทรัฟเฟิล', unit: 'PLATE', sku: 'H1-0006', note: '' },
+    { name: 'เมนูยำสาหร่าย', unit: 'PLATE', sku: 'H1-0007', note: '' },
+    { name: 'เมนูทาโกะวาซาบิ', unit: 'PLATE', sku: 'H1-0009', note: '' },
+    { name: 'เมนูถั่วแระญี่ปุ่น', unit: 'PLATE', sku: 'H1-0010', note: '' },
+    { name: 'เมนูถั่วแระแบล็คอินุ', unit: 'PLATE', sku: 'H1-0011', note: '' },
+    { name: 'เมนูหนังไก่ทอดหม่าล่า', unit: 'PLATE', sku: 'H1-0012', note: '' },
+    { name: 'เมนูปลาเกร็ดแก้วทอดหม่าล่า', unit: 'PLATE', sku: 'H1-0013', note: '' },
+    { name: 'เมนูเต้าหู้ทอด Agedashi', unit: 'PLATE', sku: 'H1-0023', note: '' },
+    { name: 'เมนูอโวคาโดทอด', unit: 'PLATE', sku: 'H1-0024', note: '' },
+    { name: 'เมนูทาโกะยากิ', unit: 'PLATE', sku: 'H1-0025', note: '' },
+    { name: 'เมนูหอยนางรมทอด', unit: 'PLATE', sku: 'H1-0026', note: '' },
+    { name: 'เมนูปีกไก่แบล็คอินุ', unit: 'PLATE', sku: 'H1-0027', note: '' },
+    { name: 'เมนูยูเกะเนื้อดิบ Yuke', unit: 'PLATE', sku: 'H1-0028', note: '' },
+    { name: 'เมนูไก่คาราเกะ', unit: 'PLATE', sku: 'H1-0029', note: '' },
+    { name: 'เมนูไก่ทอดอันยอง', unit: 'PLATE', sku: 'H1-0030', note: '' },
+    { name: 'เมนูซุปมิโซะ', unit: 'PLATE', sku: 'H1-0031', note: '' },
+    { name: 'เมนูข้าวญี่ปุ่น', unit: 'PLATE', sku: 'H1-0032', note: '' },
+    { name: 'เมนูข้าวผัดกระเทียม', unit: 'PLATE', sku: 'H1-0033', note: '' },
+    { name: 'เมนูข้าวผัดแซลมอน', unit: 'PLATE', sku: 'H1-0034', note: '' },
+    { name: 'เมนูซอสแกงกะหรี่', unit: 'PLATE', sku: 'H1-0035', note: '' },
+    { name: 'เมนูเฟรนฟรายมันหวานญี่ปุ่น', unit: 'PLATE', sku: 'H1-0036', note: '' },
+    { name: 'เมนู ท้องแซลมอนทอดแจ่วทงคัตสึ', unit: 'PLATE', sku: 'H1-0037', note: '' },
+    { name: 'เมนูแหนมซี่โครงอ่อน', unit: 'PLATE', sku: 'H1-0038', note: '' },
+    { name: 'เมนูหมึกระนองย่างซีอิ๊ว (Ikayaki)', unit: 'PLATE', sku: 'H1-0039', note: '' },
+    { name: 'เมนูหมึกระนองย่างเกลือ (Ika Shio yaki)', unit: 'PLATE', sku: 'H1-0040', note: '' },
+    { name: 'เมนูไข่หมึกระนองทอด', unit: 'PLATE', sku: 'H1-0041', note: '' },
+    { name: 'เมนูมันหวานทอดซอสมะเขือเทศสไปซี่', unit: 'PLATE', sku: 'H1-0042', note: '' },
+    { name: 'เมนูแบล็คอินุฟรายส์(ใหม่)', unit: 'PLATE', sku: 'H1-0043', note: '' },
+    { name: 'เมนูข้าวผัดกิมจิหมูย่าง', unit: 'PLATE', sku: 'H2-0008', note: '' },
+    { name: 'เมนูแซลม่อนย่างเกลือ', unit: 'PLATE', sku: 'H2-0009', note: '' },
+    { name: 'เมนูแซลมอนย่างซีอิ๊ว', unit: 'PLT', sku: 'H2-0010', note: '' },
+    { name: 'เมนูซาบะย่างเกลือ', unit: 'PLATE', sku: 'H2-0011', note: '' },
+    { name: 'เมนูซาบะย่างซีอิ๊ว', unit: 'PLATE', sku: 'H2-0012', note: '' },
+    { name: 'เมนูยากิโซบะหมู', unit: 'PLATE', sku: 'H2-0015', note: '' },
+    { name: 'เมนูยากิโซบะไก่', unit: 'PLATE', sku: 'H2-0016', note: '' },
+    { name: 'เมนูยากิโซบะกุ้ง', unit: 'PLATE', sku: 'H2-0017', note: '' },
+    { name: 'เมนูเนื้อมิโซะชิมิชูรี Beef Miso Chimichuri', unit: 'PLATE', sku: 'H2-0018', note: '' },
+    { name: 'เมนูหอยเชลล์ผัดเนย', unit: 'PLATE', sku: 'H2-0019', note: '' },
+    { name: 'เมนูแซลมอนย่างมิโซะ', unit: 'PLATE', sku: 'H2-0020', note: '' },
+    { name: 'เมนูลิ้นวัวย่าง', unit: 'PLATE', sku: 'H2-0021', note: '' },
+    { name: 'เมนูกุ้งเทมปุระ', unit: 'PLATE', sku: 'H2-0022', note: '' },
+    { name: 'เมนูผักเทมปุระ', unit: 'PLATE', sku: 'H2-0023', note: '' },
+    { name: 'เมนูข้าวหน้าเนื้อ', unit: 'PLATE', sku: 'H2-0024', note: '' },
+    { name: 'เมนูข้าวหมูทอดแกงกะหรี่', unit: 'PLATE', sku: 'H2-0025', note: '' },
+    { name: 'เมนูข้าวผัดมันเนื้อ', unit: 'PLATE', sku: 'H2-0031', note: '' },
+    { name: 'เมนูข้าวหน้าเนื้อออสเตรเลีย วากิว A3 ย่างไข่ดอง', unit: 'PLATE', sku: 'H2-0032', note: '' },
+    { name: 'เมนูเนื้อออสเตรเลียวากิว A3 โทบันยากิ Tobanyaki', unit: 'PLATE', sku: 'H2-0033', note: '' },
+    { name: 'เมนูแซลมอนโทบันยากิ Tobanyaki', unit: 'PLATE', sku: 'H2-0034', note: '' },
+    { name: 'เมนูไก่โทบันยากิ Tobanyaki', unit: 'PLATE', sku: 'H2-0035', note: '' },
+    { name: 'Shabu XL Set หมู(ซุปสุกี้น้ำดำ)', unit: 'PLATE', sku: 'H2-0036', note: '' },
+    { name: 'Shabu XL Set หมู (ซุปปลาแห้ง)', unit: 'PLATE', sku: 'H2-0037', note: '' },
+    { name: 'Shabu XL Set หมู (ซุปกิมจิ)', unit: 'PLATE', sku: 'H2-0038', note: '' },
+    { name: 'Shabu XL Set เนื้อ (ซุปสุกี้ยากี้น้ำดำ)', unit: 'PLATE', sku: 'H2-0039', note: '' },
+    { name: 'Shabu XL Set เนื้อ (ซุปปลาแห้ง)', unit: 'PLATE', sku: 'H2-0040', note: '' },
+    { name: 'Shabu XL Set เนื้อ (ซุปกิมจิ)', unit: 'PLATE', sku: 'H2-0041', note: '' },
+    { name: 'Shabu XL Set ปลาไทย (ซุปสุกี้น้ำดำ)', unit: 'PLATE', sku: 'H2-0042', note: '' },
+    { name: 'Shabu XL Set ปลาไทย(ซุปปลาแห้ง)', unit: 'PLATE', sku: 'H2-0043', note: '' },
+    { name: 'Shabu XL ปลาไทย(ซุปกิมจิ)', unit: 'PLATE', sku: 'H2-0044', note: '' },
+    { name: 'เมนูสลัดผักรวม', unit: 'PLATE', sku: 'H3-0001', note: '' },
+    { name: 'เมนูสลัดปลาดิบรวม', unit: 'PLATE', sku: 'H3-0002', note: '' },
+    { name: 'เมนูสลัดไก่คาราเกะ', unit: 'PLATE', sku: 'H3-0003', note: '' },
+    { name: 'เมนูสลัดปลาแซลมอน', unit: 'PLATE', sku: 'H3-0004', note: '' },
+    { name: 'เมนูสลัดปลาเกร็ดแก้ว', unit: 'PLATE', sku: 'H3-0005', note: '' },
+    { name: 'เมนูสลัดโซบะ', unit: 'PLATE', sku: 'H3-0006', note: '' },
+    { name: 'เมนู Sunomono', unit: 'PLATE', sku: 'H3-0007', note: '' },
+    { name: 'เมนูเห็ดเข็มทองผัดเนย', unit: 'PLATE', sku: 'H3-0008', note: '' },
+    { name: 'เมนูเห็ดออรินจิผัดเนย', unit: 'PLATE', sku: 'H3-0009', note: '' },
+    { name: 'เมนูผัดผักรวม', unit: 'PLATE', sku: 'H3-0010', note: '' },
+    { name: 'เมนูเบคอนพันหน่อไม้ฝรั่ง (Yakitori)', unit: 'PLATE', sku: 'H4-0004', note: '' },
+    { name: 'เมนูอโวคาโดพันเบคอน (Yakitori)', unit: 'PLATE', sku: 'H4-0005', note: '' },
+    { name: 'เมนูเบคอนพันเห็ดเข็มทอง (Yakitori)', unit: 'PLATE', sku: 'H4-0006', note: '' },
+    { name: 'เมนูปลาไหลย่าง (Yakitori)', unit: 'PLATE', sku: 'H4-0007', note: '' },
+    { name: 'เมนูปลาไข่ (Yakitori)', unit: 'PLATE', sku: 'H4-0008', note: '' },
+    { name: 'เมนูหอยเชลล์ (Yakitori)', unit: 'PLATE', sku: 'H4-0009', note: '' },
+    { name: 'เมนูผงหม่าล่า', unit: 'PLATE', sku: 'H4-0010', note: '' },
+    { name: 'เมนูตับไก่ (Yakitori)', unit: 'PLATE', sku: 'H4-0011', note: '' },
+    { name: 'เมนูกึ๋นไก่ (Yakitori)', unit: 'PLATE', sku: 'H4-0012', note: '' },
+    { name: 'เมนูกระดูกอ่อนไก่ (Yakitori)', unit: 'PLATE', sku: 'H4-0013', note: '' },
+    { name: 'เมนูหนังไก่ (Yakitori)', unit: 'PLATE', sku: 'H4-0014', note: '' },
+    { name: 'เมนูสะโพกไก่ต้นหอม (Yakitori)', unit: 'PLATE', sku: 'H4-0015', note: '' },
+    { name: 'เมนูสะโพกไก่มิโซะ (Yakitori)', unit: 'PLATE', sku: 'H4-0016', note: '' },
+    { name: 'เมนูสะโพกไก่ (Yakitori)', unit: 'PLATE', sku: 'H4-0017', note: '' },
+    { name: 'เมนูไส้อ่ออนหมู (Yakitori)', unit: 'PLATE', sku: 'H4-0018', note: '' },
+    { name: 'เมนูหมูสามชั้น (Yakitori)', unit: 'PLATE', sku: 'H4-0019', note: '' },
+    { name: 'เมนูไส้กรอก (Yakitori)', unit: 'PLATE', sku: 'H4-0020', note: '' },
+    { name: 'เมนูเนื้อไทยวากิว (Yakitori)', unit: 'PLATE', sku: 'H4-0021', note: '' },
+    { name: 'ซอสเทริยากิ(ทำเอง)', unit: 'ML', sku: 'I1-0001', note: '' },
+    { name: 'ซอสยากิโซบะ(ทำเอง)', unit: 'ML', sku: 'I1-0002', note: '' },
+    { name: 'กิมจิ(I)', unit: 'G', sku: 'I1-0003', note: '' },
+    { name: 'ซอสเทมปุระ(ทำเอง)', unit: 'ML', sku: 'I1-0004', note: '' },
+    { name: 'น้ำซุปชาบูน้ำดำ (ML)', unit: 'ML', sku: 'I1-0005', note: '' },
+    { name: 'ไชเท้าฝน', unit: 'G', sku: 'I1-0006', note: '' },
+    { name: 'น้ำซุปชาบูน้ำใส', unit: 'ML', sku: 'I1-0008', note: '' },
+    { name: 'น้ำจิ้มพอนสึ', unit: 'ML', sku: 'I1-0009', note: '' },
+    { name: 'น้ำยำ(ใหม่)', unit: 'G', sku: 'I1-0010', note: '' },
+    { name: 'ข้าวญี่ปุ่น', unit: 'G', sku: 'I1-0013', note: '' },
+    { name: 'ซอสน้ำผึ้ง', unit: 'G', sku: 'I1-0017', note: '' },
+    { name: 'ซอสยากินิกุ', unit: 'ML', sku: 'I1-0021', note: '' },
+    { name: 'ซอสทรัฟเฟิลมาโย', unit: 'G', sku: 'I1-0022', note: '' },
+    { name: 'น้ำสลัดโซบะ', unit: 'ML', sku: 'I1-0023', note: '' },
+    { name: 'ซอสChojuan', unit: 'ML', sku: 'I1-0025', note: '' },
+    { name: 'ซอสมิโซะไซเกียว', unit: 'G', sku: 'I1-0028', note: '' },
+    { name: 'ไก่คาราเกะ', unit: 'PC', sku: 'I1-0030', note: '' },
+    { name: 'ผงปีกไก่แบล็คอินุ', unit: 'G', sku: 'I1-0032', note: '' },
+    { name: 'ผักรวม(I)', unit: 'G', sku: 'I1-0033', note: '' },
+    { name: 'น้ำดองซีอิ๊ว', unit: 'G', sku: 'I1-0039', note: '' },
+    { name: 'แจ่วทงคัตซึ', unit: 'G', sku: 'I1-0046', note: '' },
+    { name: 'Spicy Ketchup', unit: 'G', sku: 'I1-0047', note: '' },
+    { name: 'ไข่แดงดอง', unit: 'PC', sku: 'I1-0048', note: '' },
+    { name: 'ซอส โทบันยากิ Tobanyaki', unit: 'G', sku: 'I1-0049', note: '' },
+    { name: 'Dashi Stock', unit: 'G', sku: 'I1-0053', note: '' },
+    { name: 'Sukiyaki Sauce', unit: 'G', sku: 'I1-0054', note: '' },
+  ],
+  stove_grill: [
+    { name: 'แป้งคาราเกะ 1 KG', unit: 'G', sku: 'F03', note: '' },
+    { name: 'กระเทียมเจียว - คุณชาย', unit: 'G', sku: 'KITH0004', note: '' },
+    { name: 'เกลือไอโอดีน', unit: 'G', sku: 'KITH0012', note: '' },
+    { name: 'ขิงแก่', unit: 'G', sku: 'KITH0018', note: '' },
+    { name: 'น้ำซุปปลาแห้งเข้มข้น - ARO', unit: 'Ml', sku: 'KITH0042', note: '' },
+    { name: 'น้ำมันปาล์ม - โบนัส', unit: 'Ml', sku: 'KITH0045', note: '' },
+    { name: 'แป้งมัน - Aro', unit: 'G', sku: 'KITH0066', note: '' },
+    { name: 'มันฝรั่ง', unit: 'G', sku: 'KITH0085', note: '' },
+    { name: 'มันหวานญี่ปุ่นสีเหลือง', unit: 'G', sku: 'KITH0086', note: '' },
+    { name: 'มันหวานญี่ปุ่น เบนิฮารุกะ', unit: 'G', sku: 'KITH0087', note: '' },
+    { name: 'มิริน', unit: 'Ml', sku: 'KITH0090', note: '' },
+    { name: 'เส้นราเมน', unit: 'G', sku: 'KITH0103', note: '' },
+    { name: 'หอมใหญ่', unit: 'G', sku: 'KITH0116', note: '' },
+    { name: 'อายิโนะโมะโต๊ะ ฮอนดาชิ ซุปผงกึ่งสำเร็จรูปผสมปลา', unit: 'G', sku: 'KITH0122', note: '' },
+    { name: 'สาเก wine food 18L', unit: 'Ml', sku: 'KITH0156', note: '' },
+    { name: 'เอโร่ เม็ดมะม่วงหิมพานต์ 2 กก.', unit: 'G', sku: 'KITH0168', note: '' },
+    { name: 'โบนัสน้ำมันปาล์มถุงเติม', unit: 'Ml', sku: 'KITH0205', note: '' },
+    { name: 'ซุปมิโซะต้ม(I)', unit: 'G', sku: 'I1-0034', note: '' },
+  ],
+};
+
+// ============ STATE ============
+let allRecords = [];
+let currentLocation = null;
+let currentChecker = '';
+let viewingRecord = null;
+let hasEntryChanges = false;
+
+// ============ RENDER LOCATION GRID ============
+function renderGrid() {
+  const grid = document.getElementById('location-grid');
+  grid.innerHTML = LOCATIONS.map(loc => `
+    <button onclick="selectLocation('${loc.id}')" class="loc-btn bg-gradient-to-br ${loc.color} text-white rounded-2xl p-4 text-left shadow-md hover:shadow-lg">
+      <div class="text-2xl mb-1">${loc.icon}</div>
+      <div class="font-bold text-sm leading-tight">${loc.name}</div>
+    </button>
+  `).join('');
+}
+
+// ============ NAVIGATION ============
+function showPage(id) {
+  ['page-main','page-checker','page-entry','page-history','page-detail'].forEach(p => {
+    const el = document.getElementById(p);
+    if (p === id) { el.classList.remove('hidden'); el.classList.add('fade-in'); }
+    else { el.classList.add('hidden'); }
+  });
+  window.scrollTo(0, 0);
+}
+
+function goMain() { hasEntryChanges = false; showPage('page-main'); }
+
+function selectLocation(id) {
+  currentLocation = id;
+  const loc = LOCATIONS.find(l => l.id === id);
+  document.getElementById('checker-loc-title').textContent = loc.name;
+  document.getElementById('checker-name').value = '';
+  showPage('page-checker');
+  setTimeout(() => document.getElementById('checker-name').focus(), 100);
+}
+
+function startCheck() {
+  const name = document.getElementById('checker-name').value.trim();
+  if (!name) { showToast('⚠️ กรุณากรอกชื่อผู้เช็ค'); return; }
+  currentChecker = name;
+  const loc = LOCATIONS.find(l => l.id === currentLocation);
+  document.getElementById('entry-loc-title').textContent = loc.name;
+  document.getElementById('entry-checker-info').textContent = `ผู้เช็ค: ${name}`;
+  renderStockTable();
+  hasEntryChanges = false;
+  showPage('page-entry');
+}
+
+function confirmBack() {
+  if (hasEntryChanges) {
+    document.getElementById('confirm-modal').classList.remove('hidden');
+  } else { goMain(); }
+}
+function hideModal() { document.getElementById('confirm-modal').classList.add('hidden'); }
+
+// ============ STOCK TABLE ============
+function renderStockTable() {
+  const items = STOCK_ITEMS[currentLocation] || [];
+  const tbody = document.getElementById('stock-body');
+  tbody.innerHTML = items.map((item, i) => `
+    <tr class="${i % 2 === 0 ? 'bg-white' : 'bg-slate-50'} border-b border-slate-100">
+      <td class="py-2.5 px-2 text-slate-400 text-xs">${i + 1}</td>
+      <td class="py-2.5 px-1 font-medium text-slate-800 text-sm">${item.name}</td>
+      <td class="py-2.5 px-1 text-center">
+        <input type="number" min="0" step="0.1" data-idx="${i}" oninput="hasEntryChanges=true"
+          class="w-16 text-center border-2 border-slate-200 focus:border-emerald-500 rounded-lg py-1.5 text-sm font-semibold outline-none transition" placeholder="-" />
+      </td>
+      <td class="py-2.5 px-1 text-center text-slate-500 text-xs">${item.unit}</td>
+      <td class="py-2.5 px-1 text-slate-400 text-xs font-mono">${item.sku}</td>
+      <td class="py-2.5 px-1 text-slate-400 text-xs">${item.note || '-'}</td>
+    </tr>
+  `).join('');
+}
+
+// ============ SAVE ============
+async function saveStock()const WEB_APP_URL =https://script.google.com/macros/s/AKfycbyyO0xdmzrvEDJFFs_zmEjm81YGWzqEdhr2OKYnpVKEbdy4I89nzno2lSj0sijOgm2z/exec;
+
+async function saveStock() {
+  const rows = document.querySelectorAll("#stock-body tr");
+  const items = [];
+
+  rows.forEach(row => {
+    const name = row.children[1]?.innerText || "";
+    const qty = row.querySelector("input[type='number']")?.value || "";
+    const unit = row.children[3]?.innerText || "";
+    const sku = row.children[4]?.innerText || "";
+    const note = row.querySelector("input[type='text']")?.value || "";
+
+    if (qty !== "") {
+      items.push({ name, qty, unit, sku, note });
+    }
+  });
+
+  const payload = {
+    location: document.getElementById("entry-loc-title").innerText,
+    checker: document.getElementById("checker-name").value,
+    items: items
+  };
+
+  try {
+    await fetch(WEB_APP_URL, {
+      method: "POST",
+      body: JSON.stringify(payload),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+
+    showToast("✅ บันทึกเข้า Google Sheet แล้ว");
+  } catch (err) {
+    console.error(err);
+    showToast("❌ ส่งข้อมูลไม่สำเร็จ");
+  }
+}
+
+// ============ HISTORY ============
+function showHistory() {
+  document.getElementById('history-date').value = '';
+  renderHistoryList(allRecords);
+  showPage('page-history');
+}
+
+function filterHistory() {
+  const dateVal = document.getElementById('history-date').value;
+  if (!dateVal) { renderHistoryList(allRecords); return; }
+  const filtered = allRecords.filter(r => r.date && r.date.startsWith(dateVal));
+  renderHistoryList(filtered);
+}
+
+function renderHistoryList(records) {
+  const list = document.getElementById('history-list');
+  if (!records.length) {
+    list.innerHTML = '<div class="text-center text-slate-400 py-10">ยังไม่มีประวัติ</div>';
+    return;
+  }
+  const sorted = [...records].sort((a, b) => new Date(b.date) - new Date(a.date));
+  list.innerHTML = sorted.map(r => {
+    const loc = LOCATIONS.find(l => l.id === r.location);
+    const d = new Date(r.date);
+    const dateStr = d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
+    const timeStr = d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+    return `
+      <button onclick='viewDetail("${r.__backendId}")' class="w-full text-left bg-white rounded-xl p-4 mb-2 shadow-sm border border-slate-100 hover:shadow-md transition active:scale-[0.99]">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="text-xl">${loc?.icon || '📦'}</span>
+            <div>
+              <div class="font-bold text-slate-800 text-sm">${loc?.name || r.location}</div>
+              <div class="text-slate-400 text-xs">👤 ${r.checker_name} · ${dateStr} ${timeStr}</div>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" style="width:18px;height:18px;color:#94a3b8"></i>
+        </div>
+      </button>
+    `;
+  }).join('');
+  lucide.createIcons();
+}
+
+function viewDetail(backendId) {
+  viewingRecord = allRecords.find(r => r.__backendId === backendId);
+  if (!viewingRecord) return;
+  const loc = LOCATIONS.find(l => l.id === viewingRecord.location);
+  const d = new Date(viewingRecord.date);
+  document.getElementById('detail-title').textContent = loc?.name || viewingRecord.location;
+  document.getElementById('detail-info').textContent = `👤 ${viewingRecord.checker_name} · ${d.toLocaleDateString('th-TH')} ${d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}`;
+
+  let items = [];
+  try { items = JSON.parse(viewingRecord.items_json); } catch(e) {}
+
+  document.getElementById('detail-body').innerHTML = items.map((item, i) => `
+    <tr class="${i % 2 === 0 ? 'bg-white' : 'bg-slate-50'} border-b border-slate-100">
+      <td class="py-2.5 px-2 text-slate-400 text-xs">${i + 1}</td>
+      <td class="py-2.5 px-1 font-medium text-slate-800 text-sm">${item.name}</td>
+      <td class="py-2.5 px-1 text-center font-bold text-emerald-600">${item.qty || '-'}</td>
+      <td class="py-2.5 px-1 text-center text-slate-500 text-xs">${item.unit}</td>
+      <td class="py-2.5 px-1 text-slate-400 text-xs font-mono">${item.sku}</td>
+      <td class="py-2.5 px-1 text-slate-400 text-xs">${item.note || '-'}</td>
+    </tr>
+  `).join('');
+
+  showPage('page-detail');
+}
+
+function deleteRecord() {
+  document.getElementById('delete-modal').classList.remove('hidden');
+}
+
+async function confirmDelete() {
+  document.getElementById('delete-modal').classList.add('hidden');
+  if (!viewingRecord) return;
+  const btn = document.getElementById('delete-btn');
+  btn.textContent = '⏳ กำลังลบ...';
+  btn.disabled = true;
+  const result = await window.dataSdk.delete(viewingRecord);
+  btn.textContent = '🗑 ลบ';
+  btn.disabled = false;
+  if (result.isOk) {
+    showToast('🗑 ลบสำเร็จ');
+    showHistory();
+  } else {
+    showToast('❌ ลบไม่สำเร็จ');
+  }
+}
+
+// ============ TOAST ============
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.remove('hidden');
+  t.classList.add('toast-show');
+  setTimeout(() => { t.classList.add('hidden'); t.classList.remove('toast-show'); }, 2500);
+}
+
+// ============ ELEMENT SDK ============
+const defaultConfig = {
+  app_title: 'เช็คสต็อค',
+  background_color: '#f8fafc',
+  header_color: '#059669',
+  text_color: '#1e293b',
+  accent_color: '#10b981',
+  surface_color: '#ffffff',
+  font_family: 'Sarabun',
+  font_size: 14
+};
+
+window.elementSdk.init({
+  defaultConfig,
+  onConfigChange: async (config) => {
+    const title = config.app_title || defaultConfig.app_title;
+    const el = document.getElementById('main-title');
+    if (el) el.textContent = '📦 ' + title;
+
+    const bg = config.background_color || defaultConfig.background_color;
+    document.body.style.backgroundColor = bg;
+
+    const txt = config.text_color || defaultConfig.text_color;
+    document.body.style.color = txt;
+
+    const surface = config.surface_color || defaultConfig.surface_color;
+    document.querySelectorAll('table tr.bg-white, .bg-white').forEach(e => e.style.backgroundColor = surface);
+
+    const font = config.font_family || defaultConfig.font_family;
+    document.body.style.fontFamily = `${font}, Sarabun, sans-serif`;
+
+    const size = config.font_size || defaultConfig.font_size;
+    document.body.style.fontSize = size + 'px';
+  },
+  mapToCapabilities: (config) => ({
+    recolorables: [
+      { get: () => config.background_color || defaultConfig.background_color, set: v => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); } },
+      { get: () => config.surface_color || defaultConfig.surface_color, set: v => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); } },
+      { get: () => config.text_color || defaultConfig.text_color, set: v => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); } },
+      { get: () => config.accent_color || defaultConfig.accent_color, set: v => { config.accent_color = v; window.elementSdk.setConfig({ accent_color: v }); } },
+      { get: () => config.header_color || defaultConfig.header_color, set: v => { config.header_color = v; window.elementSdk.setConfig({ header_color: v }); } },
+    ],
+    borderables: [],
+    fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: v => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); } },
+    fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: v => { config.font_size = v; window.elementSdk.setConfig({ font_size: v }); } }
+  }),
+  mapToEditPanelValues: (config) => new Map([
+    ['app_title', config.app_title || defaultConfig.app_title]
+  ])
+});
+
+// ============ DATA SDK ============
+const dataHandler = {
+  onDataChanged(data) {
+    allRecords = data;
+    // If on history page, refresh
+    if (!document.getElementById('page-history').classList.contains('hidden')) {
+      filterHistory();
+    }
+  }
+};
+
+(async () => {
+  const result = await window.dataSdk.init(dataHandler);
+  if (!result.isOk) console.error('Data SDK init failed');
+  renderGrid();
+  lucide.createIcons();
+})();
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e498d49110433b6',t:'MTc3NDg5OTI2OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
