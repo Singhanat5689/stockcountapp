@@ -65,8 +65,7 @@ input[type="number"]::-webkit-outer-spin-button { opacity: 1; height: 32px; }
         <th class="text-left py-2 px-1 font-semibold">รายการ</th>
         <th class="text-center py-2 px-1 font-semibold w-20">คงเหลือ</th>
         <th class="text-center py-2 px-1 font-semibold w-14">หน่วย</th>
-        <th class="text-left py-2 px-1 font-semibold w-20">SKU</th>
-        <th class="text-left py-2 px-1 rounded-r-lg font-semibold w-20">หมายเหตุ</th>
+        <th class="text-left py-2 px-1 rounded-r-lg font-semibold w-20">SKU</th>
        </tr>
       </thead>
       <tbody id="stock-body"></tbody>
@@ -177,38 +176,42 @@ const STOCK_ITEMS = {
     { name: 'หมึกกระดอง', unit: 'G', sku: 'KITH0183', note: '' },
   ],
   freezer_white: [
- { name: 'กึ๋นไก่ผ่า', unit: 'G', sku: 'KITH0010', note: '(ยังไม่เสียบ)' },
-{ name: 'เกี๊ยวซ่าไก่ Gyoza', unit: 'G', sku: 'KITH0013', note: '' },
-{ name: 'ครีบปลากระเบน', unit: 'G', sku: 'KITH0020', note: '' },
-{ name: 'ตับไก่', unit: 'KG', sku: 'KITH0033', note: '(ยังไม่เสียบ)' },
-{ name: 'ทาโกะยากิ Takoyaki 1kg', unit: 'G', sku: 'KITH0039', note: '' },
-{ name: 'เนื้อไทยวากิว เสียบไม้', unit: 'G', sku: 'KITH0050', note: '' },
-{ name: 'เอโร่ ปลาไข่แอตแลนติกแช่แข็ง 500 ก.', unit: 'G', sku: 'KITH0059', note: '(ยังไม่เสียบ)' },
-{ name: 'ไส้กรอกญี่ปุ่น SS PK Bayern Wiener', unit: 'G', sku: 'KITH0104', note: '(ยังไม่เสียบ)' },
-{ name: 'หนวดหมึกชุปแป้งทอด', unit: 'G', sku: 'KITH0106', note: '' },
-{ name: 'หอยนางรมแช่แข็ง L - Frozen Kanetsu Kaki (Hiroshima)', unit: 'G', sku: 'KITH0118', note: '' },
-{ name: 'กระดูกอ่อนไก่ - CP', unit: 'G', sku: 'KITH0124', note: '' },
-{ name: 'CP หมูสามชั้นสไลซ์อนามัย 1000ก.', unit: 'G', sku: 'KITH0197', note: '' },
-{ name: 'Beef Oyster blade Kokun เนื้อใบพายโคขุน', unit: 'G', sku: 'KITH0201', note: '' },
-{ name: 'Beef Ribeye Kokun เนื้อริบอายโคขุน', unit: 'G', sku: 'KITH0202', note: '' },
-{ name: 'Beef Shank Kokun เนื้อน่องลาย', unit: 'G', sku: 'KITH0203', note: '' },
-{ name: 'เมนูเบคอนพันหน่อไม้ฝรั่ง (Yakitori)', unit: 'PLATE', sku: 'H4-0004', note: '' },
-{ name: 'เมนูอโวคาโดพันเบคอน (Yakitori)', unit: 'PLATE', sku: 'H4-0005', note: '' },
-{ name: 'เมนูเบคอนพันเห็ดเข็มทอง (Yakitori)', unit: 'PLATE', sku: 'H4-0006', note: '' },
-{ name: 'เมนูปลาไข่ (Yakitori)', unit: 'PLATE', sku: 'H4-0008', note: '' },
-{ name: 'เมนูตับไก่ (Yakitori)', unit: 'PLATE', sku: 'H4-0011', note: '' },
-{ name: 'เมนูกึ๋นไก่ (Yakitori)', unit: 'PLATE', sku: 'H4-0012', note: '' },
-{ name: 'เมนูกระดูกอ่อนไก่ (Yakitori)', unit: 'PLATE', sku: 'H4-0013', note: '' },
-{ name: 'เมนูหนังไก่ (Yakitori)', unit: 'PLATE', sku: 'H4-0014', note: '' },
-{ name: 'เมนูสะโพกไก่ต้นหอม (Yakitori)', unit: 'PLATE', sku: 'H4-0015', note: '' },
-{ name: 'เมนูสะโพกไก่มิโซะ (Yakitori)', unit: 'PLATE', sku: 'H4-0016', note: '' },
-{ name: 'เมนูสะโพกไก่ (Yakitori)', unit: 'PLATE', sku: 'H4-0017', note: '' },
-{ name: 'เมนูไส้อ่ออนหมู (Yakitori)', unit: 'PLATE', sku: 'H4-0018', note: '' },
-{ name: 'เมนูหมูสามชั้น (Yakitori)', unit: 'PLATE', sku: 'H4-0019', note: '' },
-{ name: 'เมนูไส้กรอก (Yakitori)', unit: 'PLATE', sku: 'H4-0020', note: '' },
-{ name: 'เมนูเนื้อไทยวากิว (Yakitori)', unit: 'PLATE', sku: 'H4-0021', note: '' },
-{ name: 'แกงกะหรี่(I)', unit: 'G', sku: 'I1-0038', note: '' },
-
+    { name: 'กึ๋นไก่ผ่า(ที่ยังไม่เสียบไม้)', unit: 'G', sku: 'KITH0010', note: '' },
+    { name: 'เกี๊ยวซ่าไก่ Gyoza', unit: 'G', sku: 'KITH0013', note: '' },
+    { name: 'ครีบปลากระเบน', unit: 'G', sku: 'KITH0020', note: '' },
+    { name: 'ตับไก่(ที่ยังไม่เสียบ)', unit: 'KG', sku: 'KITH0033', note: '' },
+    { name: 'ทาโกะยากิ Takoyaki 1kg', unit: 'G', sku: 'KITH0039', note: '' },
+    { name: 'เนื้อไทยวากิว เสียบไม้', unit: 'G', sku: 'KITH0050', note: '' },
+    { name: 'เอโร่ ปลาไข่แอตแลนติกแช่แข็ง 500 ก.(ที่ยังไม่เสียบ)', unit: 'G', sku: 'KITH0059', note: '' },
+    { name: 'ไส้กรอกญี่ปุ่น SS PK Bayern Wiener(ยังไม่เสียบ)', unit: 'G', sku: 'KITH0104', note: '' },
+    { name: 'หนวดหมึกชุปแป้งทอด', unit: 'G', sku: 'KITH0106', note: '' },
+    { name: 'หอยนางรมแช่แข็ง L - Frozen Kanetsu Kaki (Hiroshima)', unit: 'G', sku: 'KITH0118', note: '' },
+    { name: 'กระดูกอ่อนไก่ - CP', unit: 'G', sku: 'KITH0124', note: '' },
+    { name: 'CP หมูสามชั้นสไลซ์อนามัย 1000ก.', unit: 'G', sku: 'KITH0197', note: '' },
+    { name: 'Beef Oyster blade Kokun เนื้อใบพายโคขุน', unit: 'G', sku: 'KITH0201', note: '' },
+    { name: 'Beef Ribeye Kokun เนื้อริบอายโคขุน', unit: 'G', sku: 'KITH0202', note: '' },
+    { name: 'Beef Shank Kokun เนื้อน่องลาย', unit: 'G', sku: 'KITH0203', note: '' },
+    { name: 'เมนูเบคอนพันหน่อไม้ฝรั่ง (Yakitori)', unit: 'PLATE', sku: 'H4-0004', note: '' },
+    { name: 'เมนูอโวคาโดพันเบคอน (Yakitori)', unit: 'PLATE', sku: 'H4-0005', note: '' },
+    { name: 'เมนูเบคอนพันเห็ดเข็มทอง (Yakitori)', unit: 'PLATE', sku: 'H4-0006', note: '' },
+    { name: 'เมนูปลาไหลย่าง (Yakitori)', unit: 'PLATE', sku: 'H4-0007', note: '' },
+    { name: 'เมนูปลาไข่ (Yakitori)', unit: 'PLATE', sku: 'H4-0008', note: '' },
+    { name: 'เมนูหอยเชลล์ (Yakitori)', unit: 'PLATE', sku: 'H4-0009', note: '' },
+    { name: 'เมนูผงหม่าล่า', unit: 'PLATE', sku: 'H4-0010', note: '' },
+    { name: 'เมนูตับไก่ (Yakitori)', unit: 'PLATE', sku: 'H4-0011', note: '' },
+    { name: 'เมนูกึ๋นไก่ (Yakitori)', unit: 'PLATE', sku: 'H4-0012', note: '' },
+    { name: 'เมนูกระดูกอ่อนไก่ (Yakitori)', unit: 'PLATE', sku: 'H4-0013', note: '' },
+    { name: 'เมนูหนังไก่ (Yakitori)', unit: 'PLATE', sku: 'H4-0014', note: '' },
+    { name: 'เมนูสะโพกไก่ต้นหอม (Yakitori)', unit: 'PLATE', sku: 'H4-0015', note: '' },
+    { name: 'เมนูสะโพกไก่มิโซะ (Yakitori)', unit: 'PLATE', sku: 'H4-0016', note: '' },
+    { name: 'เมนูสะโพกไก่ (Yakitori)', unit: 'PLATE', sku: 'H4-0017', note: '' },
+    { name: 'เมนูไส้อ่ออนหมู (Yakitori)', unit: 'PLATE', sku: 'H4-0018', note: '' },
+    { name: 'เมนูหมูสามชั้น (Yakitori)', unit: 'PLATE', sku: 'H4-0019', note: '' },
+    { name: 'เมนูไส้กรอก (Yakitori)', unit: 'PLATE', sku: 'H4-0020', note: '' },
+    { name: 'เมนูเนื้อไทยวากิว (Yakitori)', unit: 'PLATE', sku: 'H4-0021', note: '' },
+    { name: 'เมนู แหนมหม่าล่าย่าง (Yakitori)', unit: 'PLATE', sku: 'H4-0024', note: '' },
+    { name: 'เมนู ไข่นกกระทาย่าง (Yakitori)', unit: 'PLATE', sku: 'H4-0025', note: '' },
+    { name: 'แกงกะหรี่(I)', unit: 'G', sku: 'I1-0038', note: '' },
   ],
   shelf_sink: [
     { name: 'น้ำส้มสายชู - Harukoma 20L.', unit: 'ML', sku: 'KITC0017', note: '' },
@@ -770,12 +773,12 @@ let hasEntryChanges = false;
 // ============ RENDER LOCATION GRID ============
 function renderGrid() {
   const grid = document.getElementById('location-grid');
-  grid.innerHTML = LOCATIONS.map(loc => `
-    <button onclick="selectLocation('${loc.id}')" class="loc-btn bg-gradient-to-br ${loc.color} text-white rounded-2xl p-4 text-left shadow-md hover:shadow-lg">
-      <div class="text-2xl mb-1">${loc.icon}</div>
-      <div class="font-bold text-sm leading-tight">${loc.name}</div>
-    </button>
-  `).join('');
+  let html = '';
+  for (let i = 0; i < LOCATIONS.length; i++) {
+    const loc = LOCATIONS[i];
+    html += `<button onclick="selectLocation('${loc.id}')" class="loc-btn bg-gradient-to-br ${loc.color} text-white rounded-2xl p-4 text-left shadow-md hover:shadow-lg"><div class="text-2xl mb-1">${loc.icon}</div><div class="font-bold text-sm leading-tight">${loc.name}</div></button>`;
+  }
+  grid.innerHTML = html;
 }
 
 // ============ NAVIGATION ============
@@ -822,59 +825,76 @@ function hideModal() { document.getElementById('confirm-modal').classList.add('h
 function renderStockTable() {
   const items = STOCK_ITEMS[currentLocation] || [];
   const tbody = document.getElementById('stock-body');
-  tbody.innerHTML = items.map((item, i) => `
-    <tr class="${i % 2 === 0 ? 'bg-white' : 'bg-slate-50'} border-b border-slate-100">
-      <td class="py-2.5 px-2 text-slate-400 text-xs">${i + 1}</td>
-      <td class="py-2.5 px-1 font-medium text-slate-800 text-sm">${item.name}</td>
-      <td class="py-2.5 px-1 text-center">
-        <input type="number" min="0" step="0.1" data-idx="${i}" oninput="hasEntryChanges=true"
-          class="w-16 text-center border-2 border-slate-200 focus:border-emerald-500 rounded-lg py-1.5 text-sm font-semibold outline-none transition" placeholder="-" />
-      </td>
-      <td class="py-2.5 px-1 text-center text-slate-500 text-xs">${item.unit}</td>
-      <td class="py-2.5 px-1 text-slate-400 text-xs font-mono">${item.sku}</td>
-      <td class="py-2.5 px-1 text-slate-400 text-xs">${item.note || '-'}</td>
-    </tr>
-  `).join('');
+  let html = '';
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const bgClass = i % 2 === 0 ? 'bg-white' : 'bg-slate-50';
+    html += `<tr class="${bgClass} border-b border-slate-100"><td class="py-2.5 px-2 text-slate-400 text-xs">${i + 1}</td><td class="py-2.5 px-1 font-medium text-slate-800 text-sm">${item.name}</td><td class="py-2.5 px-1 text-center"><input type="number" min="0" step="0.1" data-idx="${i}" oninput="hasEntryChanges=true" class="w-16 text-center border-2 border-slate-200 focus:border-emerald-500 rounded-lg py-1.5 text-sm font-semibold outline-none transition" placeholder="-" /></td><td class="py-2.5 px-1 text-center text-slate-500 text-xs">${item.unit}</td><td class="py-2.5 px-1 text-slate-400 text-xs font-mono">${item.sku}</td></tr>`;
+  }
+  tbody.innerHTML = html;
 }
 
 // ============ SAVE ============
-async function saveStock()const WEB_APP_URL =https://script.google.com/macros/s/AKfycbyyO0xdmzrvEDJFFs_zmEjm81YGWzqEdhr2OKYnpVKEbdy4I89nzno2lSj0sijOgm2z/exec;
-
 async function saveStock() {
-  const rows = document.querySelectorAll("#stock-body tr");
-  const items = [];
-
-  rows.forEach(row => {
-    const name = row.children[1]?.innerText || "";
-    const qty = row.querySelector("input[type='number']")?.value || "";
-    const unit = row.children[3]?.innerText || "";
-    const sku = row.children[4]?.innerText || "";
-    const note = row.querySelector("input[type='text']")?.value || "";
-
-    if (qty !== "") {
-      items.push({ name, qty, unit, sku, note });
+  const items = STOCK_ITEMS[currentLocation] || [];
+  const inputs = document.querySelectorAll('#stock-body input[type="number"]');
+  
+  const itemsToSave = [];
+  for (let i = 0; i < items.length; i++) {
+    const input = inputs[i];
+    const val = input ? input.value.trim() : '';
+    if (val !== '' && !isNaN(val) && Number(val) > 0) {
+      itemsToSave.push({
+        itemName: items[i].name,
+        qty: String(Number(val)),
+        unit: items[i].unit,
+        sku: items[i].sku
+      });
     }
-  });
+  }
 
-  const payload = {
-    location: document.getElementById("entry-loc-title").innerText,
-    checker: document.getElementById("checker-name").value,
-    items: items
-  };
+  if (itemsToSave.length === 0) {
+    showToast('⚠️ กรุณากรอกปริมาณอย่างน้อย 1 รายการ');
+    return;
+  }
 
-  try {
-    await fetch(WEB_APP_URL, {
-      method: "POST",
-      body: JSON.stringify(payload),
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
+  if ((allRecords.length + itemsToSave.length) > 999) {
+    showToast('⚠️ ข้อมูลเต็มแล้ว กรุณาลบรายการเก่า');
+    return;
+  }
 
-    showToast("✅ บันทึกเข้า Google Sheet แล้ว");
-  } catch (err) {
-    console.error(err);
-    showToast("❌ ส่งข้อมูลไม่สำเร็จ");
+  const btn = document.getElementById('save-btn');
+  btn.textContent = '⏳ กำลังบันทึก...';
+  btn.disabled = true;
+
+  let successCount = 0;
+  const recordDate = String(new Date().toISOString());
+  
+  for (let i = 0; i < itemsToSave.length; i++) {
+    const itemData = itemsToSave[i];
+    const recordData = {
+      location: String(currentLocation || 'unknown'),
+      checker_name: String(currentChecker || 'ไม่ระบุ'),
+      date: recordDate,
+      item_name: String(itemData.itemName),
+      quantity: itemData.qty,
+      unit: String(itemData.unit),
+      sku: String(itemData.sku)
+    };
+
+    const result = await window.dataSdk.create(recordData);
+    if (result.isOk) successCount++;
+  }
+
+  btn.textContent = '💾 บันทึก';
+  btn.disabled = false;
+
+  if (successCount === itemsToSave.length) {
+    showToast(`✅ บันทึก ${successCount} รายการสำเร็จ!`);
+    hasEntryChanges = false;
+    setTimeout(() => goMain(), 800);
+  } else {
+    showToast(`⚠️ บันทึก ${successCount}/${itemsToSave.length} รายการ`);
   }
 }
 
@@ -898,51 +918,51 @@ function renderHistoryList(records) {
     list.innerHTML = '<div class="text-center text-slate-400 py-10">ยังไม่มีประวัติ</div>';
     return;
   }
-  const sorted = [...records].sort((a, b) => new Date(b.date) - new Date(a.date));
-  list.innerHTML = sorted.map(r => {
+  
+  const grouped = {};
+  for (let i = 0; i < records.length; i++) {
+    const r = records[i];
+    const key = r.date + '|' + r.checker_name + '|' + r.location;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(r);
+  }
+
+  const sessions = Object.values(grouped).sort((a, b) => new Date(b[0].date) - new Date(a[0].date));
+  
+  let html = '';
+  for (let j = 0; j < sessions.length; j++) {
+    const sessionRecords = sessions[j];
+    const r = sessionRecords[0];
     const loc = LOCATIONS.find(l => l.id === r.location);
     const d = new Date(r.date);
     const dateStr = d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
     const timeStr = d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
-    return `
-      <button onclick='viewDetail("${r.__backendId}")' class="w-full text-left bg-white rounded-xl p-4 mb-2 shadow-sm border border-slate-100 hover:shadow-md transition active:scale-[0.99]">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <span class="text-xl">${loc?.icon || '📦'}</span>
-            <div>
-              <div class="font-bold text-slate-800 text-sm">${loc?.name || r.location}</div>
-              <div class="text-slate-400 text-xs">👤 ${r.checker_name} · ${dateStr} ${timeStr}</div>
-            </div>
-          </div>
-          <i data-lucide="chevron-right" style="width:18px;height:18px;color:#94a3b8"></i>
-        </div>
-      </button>
-    `;
-  }).join('');
+    const sessionKey = r.date + '|' + r.checker_name + '|' + r.location;
+    html += `<button onclick='viewDetail("${sessionKey}")' class="w-full text-left bg-white rounded-xl p-4 mb-2 shadow-sm border border-slate-100 hover:shadow-md transition active:scale-[0.99]"><div class="flex items-center justify-between"><div class="flex items-center gap-3"><span class="text-xl">${loc?.icon || '📦'}</span><div><div class="font-bold text-slate-800 text-sm">${loc?.name || r.location}</div><div class="text-slate-400 text-xs">👤 ${r.checker_name} · ${dateStr} ${timeStr} · ${sessionRecords.length} รายการ</div></div></div><i data-lucide="chevron-right" style="width:18px;height:18px;color:#94a3b8"></i></div></button>`;
+  }
+  list.innerHTML = html;
   lucide.createIcons();
 }
 
-function viewDetail(backendId) {
-  viewingRecord = allRecords.find(r => r.__backendId === backendId);
-  if (!viewingRecord) return;
-  const loc = LOCATIONS.find(l => l.id === viewingRecord.location);
-  const d = new Date(viewingRecord.date);
-  document.getElementById('detail-title').textContent = loc?.name || viewingRecord.location;
-  document.getElementById('detail-info').textContent = `👤 ${viewingRecord.checker_name} · ${d.toLocaleDateString('th-TH')} ${d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}`;
+function viewDetail(sessionKey) {
+  const [date, checkerName, location] = sessionKey.split('|');
+  const sessionRecords = allRecords.filter(r => r.date === date && r.checker_name === checkerName && r.location === location);
+  
+  if (!sessionRecords.length) return;
+  
+  viewingRecord = sessionRecords[0];
+  const loc = LOCATIONS.find(l => l.id === location);
+  const d = new Date(date);
+  document.getElementById('detail-title').textContent = loc?.name || location;
+  document.getElementById('detail-info').textContent = `👤 ${checkerName} · ${d.toLocaleDateString('th-TH')} ${d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}`;
 
-  let items = [];
-  try { items = JSON.parse(viewingRecord.items_json); } catch(e) {}
-
-  document.getElementById('detail-body').innerHTML = items.map((item, i) => `
-    <tr class="${i % 2 === 0 ? 'bg-white' : 'bg-slate-50'} border-b border-slate-100">
-      <td class="py-2.5 px-2 text-slate-400 text-xs">${i + 1}</td>
-      <td class="py-2.5 px-1 font-medium text-slate-800 text-sm">${item.name}</td>
-      <td class="py-2.5 px-1 text-center font-bold text-emerald-600">${item.qty || '-'}</td>
-      <td class="py-2.5 px-1 text-center text-slate-500 text-xs">${item.unit}</td>
-      <td class="py-2.5 px-1 text-slate-400 text-xs font-mono">${item.sku}</td>
-      <td class="py-2.5 px-1 text-slate-400 text-xs">${item.note || '-'}</td>
-    </tr>
-  `).join('');
+  let html = '';
+  for (let i = 0; i < sessionRecords.length; i++) {
+    const record = sessionRecords[i];
+    const bgClass = i % 2 === 0 ? 'bg-white' : 'bg-slate-50';
+    html += `<tr class="${bgClass} border-b border-slate-100"><td class="py-2.5 px-2 text-slate-400 text-xs">${i + 1}</td><td class="py-2.5 px-1 font-medium text-slate-800 text-sm">${record.item_name || '-'}</td><td class="py-2.5 px-1 text-center font-bold text-emerald-600">${record.quantity || '-'}</td><td class="py-2.5 px-1 text-center text-slate-500 text-xs">${record.unit || '-'}</td><td class="py-2.5 px-1 text-slate-400 text-xs font-mono">${record.sku || '-'}</td></tr>`;
+  }
+  document.getElementById('detail-body').innerHTML = html;
 
   showPage('page-detail');
 }
@@ -954,17 +974,32 @@ function deleteRecord() {
 async function confirmDelete() {
   document.getElementById('delete-modal').classList.add('hidden');
   if (!viewingRecord) return;
+  
   const btn = document.getElementById('delete-btn');
   btn.textContent = '⏳ กำลังลบ...';
   btn.disabled = true;
-  const result = await window.dataSdk.delete(viewingRecord);
+
+  // หาเซสชัน
+  const sessionRecords = allRecords.filter(r => 
+    r.date === viewingRecord.date && 
+    r.checker_name === viewingRecord.checker_name && 
+    r.location === viewingRecord.location
+  );
+
+  let successCount = 0;
+  for (const record of sessionRecords) {
+    const result = await window.dataSdk.delete(record);
+    if (result.isOk) successCount++;
+  }
+
   btn.textContent = '🗑 ลบ';
   btn.disabled = false;
-  if (result.isOk) {
+
+  if (successCount === sessionRecords.length) {
     showToast('🗑 ลบสำเร็จ');
     showHistory();
   } else {
-    showToast('❌ ลบไม่สำเร็จ');
+    showToast(`⚠️ ลบ ${successCount}/${sessionRecords.length} รายการ`);
   }
 }
 
@@ -1046,5 +1081,5 @@ const dataHandler = {
   lucide.createIcons();
 })();
 </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e498d49110433b6',t:'MTc3NDg5OTI2OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e4af601040e4ba7',t:'MTc3NDkxNDA0My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
