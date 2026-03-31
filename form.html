@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>กรอกข้อมูลสต็อก</title>
+<style>
+  body { font-family: 'Prompt', sans-serif; background: #f8f8f8; margin: 0; padding: 20px; }
+  h2 { color: #007BFF; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
+  th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+  th { background: #007BFF; color: white; }
+  input { border: 1px solid #ccc; border-radius: 5px; padding: 5px; width: 100%; }
+  button { margin-top: 20px; background: #007BFF; color: white; border: none; border-radius: 5px; padding: 10px 20px; cursor: pointer; }
+  button:hover { background: #0056b3; }
+</style>
+</head>
+<body>
+
+<h2 id="title"></h2>
+<label>ชื่อผู้ตรวจเช็ค: <input type="text" id="checker" placeholder="กรอกชื่อผู้ตรวจ"></label>
+
+<table>
+  <thead>
+    <tr>
+      <th>ชื่อรายการ</th>
+      <th>จำนวนคงเหลือ</th>
+      <th>หน่วยนับ</th>
+      <th>SKU</th>
+      <th>หมายเหตุ</th>
+    </tr>
+  </thead>
+  <tbody id="itemTable">
+    <!-- ตัวอย่างข้อมูล -->
+  </tbody>
+</table>
+
+<button onclick="submitData()">บันทึกข้อมูล</button>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const locationName = params.get('location');
+document.getElementById('title').innerText = `เช็คสต็อก (${locationName})`;
+
+// Mock ข้อมูลตัวอย่างสินค้า
+const items = [
+  { name: "เนื้อวัว", unit: "กก.", sku: "BEEF001" },
+  { name: "เนื้อหมู", unit: "กก.", sku: "PORK002" },
+  { name: "กุ้งแช่แข็ง", unit: "แพ็ค", sku: "SHRIMP003" }
+];
+
+const tbody = document.getElementById('itemTable');
+items.forEach(it => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${it.name}</td>
+    <td><input type="number" min="0" id="qty-${it.sku}" placeholder="0"></td>
+    <td>${it.unit}</td>
+    <td>${it.sku}</td>
+    <td><input type="text" id="remark-${it.sku}" placeholder="-"></td>
+  `;
+  tbody.appendChild(tr);
+});
+
+const scriptURL = "[script.google.com](https://script.google.com/macros/s/AKfycbyyO0xdmzrvEDJFFs_zmEjm81YGWzqEdhr2OKYnpVKEbdy4I89nzno2lSj0sijOgm2z/exec)";
+
+function submitData() {
+  const checker = document.getElementById('checker').value.trim();
+  if (!checker) return alert("กรุณากรอกชื่อผู้ตรวจเช็ค");
+
+  const data = items.map(it => ({
+    location: locationName,
+    checker,
+    item: it.name,
+    qty: document.getElementById(`qty-${it.sku}`).value || "0",
+    unit: it.unit,
+    sku: it.sku,
+    remark: document.getElementById(`remark-${it.sku}`).value || ""
+  }));
+
+  fetch(scriptURL, {
+    method: 'POST',
+    body: JSON.stringify({ action: "addStock", data })
+  })
+  .then(res => res.text())
+  .then(r => {
+    alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
+    window.location.href = "index.html";
+  })
+  .catch(err => alert("เกิดข้อผิดพลาด: " + err));
+}
+</script>
+
+</body>
+</html>
